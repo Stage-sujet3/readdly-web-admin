@@ -1,3 +1,14 @@
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+
 export default function HomePage() {
-    return <h1>Bienvenue sur mon application</h1>
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace("/auth")
+  }, [router])
+
+  return null
 }

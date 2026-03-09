@@ -1,5 +1,5 @@
-import { AdminStats } from "./types"
-import { getAdminStats } from "@/services/api"
+import { AdminStats } from "../types"
+import { getAdminStats } from "@/services/user.service"
 import { useEffect, useState } from "react"
 
 export function useAdminStats() {

@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
+const path = require("path");
 const API_GATEWAY = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 const USER_SERVICE_URL = process.env.NEXT_PUBLIC_USER_SERVICE_URL || "http://localhost:3001";
 
 const nextConfig = {
+  turbopack: {
+    root: __dirname,
+    resolveAlias: {
+      tailwindcss: path.resolve(__dirname, "node_modules/tailwindcss"),
+    },
+  },
   async rewrites() {
     return [
       {

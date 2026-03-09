@@ -1,37 +1,86 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Shield } from "lucide-react"
-import Button from "@/components/ui/Button"
-import Input from "@/components/ui/Input"
-import { useLoginForm } from "../hooks/useLoginForm"
+import { useRouter } from "next/navigation"
+import { useLogin } from "../hooks/useLogin"
+
+type FormErrors = {
+  email?: string
+  password?: string
+  form?: string
+}
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type LoginFormProps = {
   isDark?: boolean
 }
 
 export function LoginForm({ isDark = false }: LoginFormProps) {
-  const {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    showPassword,
-    isLoading,
-    errors,
-    focusedField,
-    setFocusedField,
-    handleSubmit,
-    toggleShowPassword,
-  } = useLoginForm()
+  const router = useRouter()
+  const { submit } = useLogin()
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState<FormErrors>({})
+  const [focusedField, setFocusedField] = useState<string | null>(null)
+
+  const validate = () => {
+    const newErrors: FormErrors = {}
+
+    if (!email) {
+      newErrors.email = "L'adresse e-mail est requise"
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = "L'adresse e-mail n'est pas valide"
+    }
+
+    if (!password) {
+      newErrors.password = "Le mot de passe est requis"
+    } else if (password.length < 8) {
+      // SuperTokens impose par défaut un minimum de 8 caractères
+      newErrors.password = "Le mot de passe doit contenir au moins 8 caractères"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrors({})
+
+    if (!validate()) return
+
+    try {
+      setIsLoading(true)
+      await submit({ email, password })
+      router.push("/dashboard")
+    } catch (error: any) {
+      // Pour faciliter le debug entre front et back
+      // (status, payload d'erreur retourné par la gateway / Supertokens)
+      if (error?.response) {
+        // eslint-disable-next-line no-console
+        console.error("Erreur /auth/signin:", error.response.status, error.response.data)
+      }
+      setErrors({
+        form:
+          error?.response?.data?.message ??
+          "Échec de la connexion. Vérifiez vos identifiants et réessayez.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <motion.div
       whileHover={{ y: -5 }}
       className={`rounded-3xl shadow-2xl p-8 md:p-12 backdrop-blur-xl border ${
-        isDark
-          ? "bg-[var(--color-surface-dark)] border-slate-700"
-          : "bg-[var(--color-surface-light)] border-slate-100"
+        isDark ? "bg-[#1f2b4a] border-slate-700" : "bg-white border-slate-100"
       }`}
     >
       {/* Headers */}
@@ -40,14 +89,14 @@ export function LoginForm({ isDark = false }: LoginFormProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 200 }}
-          className="inline-flex items-center gap-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white px-6 py-3 rounded-full shadow-lg mb-4"
+          className="inline-flex items-center gap-3 bg-gradient-to-r from-[#5f6ad8] to-[#444fc0] text-white px-6 py-3 rounded-full shadow-lg mb-4"
         >
           <Shield className="w-6 h-6" />
           <span className="font-bold text-lg">Admin Portal</span>
         </motion.div>
         <h2
           className={`text-3xl font-bold mb-2 ${
-            isDark ? "text-[var(--color-text-light)]" : "text-slate-800"
+            isDark ? "text-[#f8f4e6]" : "text-slate-800"
           }`}
         >
           Connexion
@@ -65,7 +114,7 @@ export function LoginForm({ isDark = false }: LoginFormProps) {
         >
           <h2
             className={`text-3xl font-bold mb-2 ${
-              isDark ? "text-[var(--color-text-light)]" : "text-slate-800"
+              isDark ? "text-[#f8f4e6]" : "text-slate-800"
             }`}
           >
             Connexion Administrateur
@@ -117,27 +166,26 @@ export function LoginForm({ isDark = false }: LoginFormProps) {
                 <Mail
                   className={`w-5 h-5 transition-colors ${
                     focusedField === "email"
-                      ? "text-[var(--color-primary)]"
+                      ? "text-[#5f6ad8]"
                       : isDark
                       ? "text-slate-300"
                       : "text-slate-400"
                   }`}
                 />
               </div>
-              <Input
+              <input
                 id="email"
                 type="email"
                 value={email}
-                onChange={(value) => setEmail(value)}
+                onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setFocusedField("email")}
                 onBlur={() => setFocusedField(null)}
-                placeholder="admin@exemple.com"
                 className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl transition-all outline-none ${
                   errors.email
                     ? "border-red-300 focus:border-red-500"
                     : focusedField === "email"
-                    ? "border-[var(--color-primary)] bg-white"
-                    : "border-slate-200 focus:border-[var(--color-primary)]"
+                    ? "border-[#5f6ad8] bg-white"
+                    : "border-slate-200 focus:border-[#5f6ad8]"
                 }`}
                 style={
                   isDark
@@ -147,6 +195,7 @@ export function LoginForm({ isDark = false }: LoginFormProps) {
                       }
                     : undefined
                 }
+                placeholder="admin@exemple.com"
               />
             </motion.div>
             {errors.email && (
@@ -191,27 +240,26 @@ export function LoginForm({ isDark = false }: LoginFormProps) {
                 <Lock
                   className={`w-5 h-5 transition-colors ${
                     focusedField === "password"
-                      ? "text-[var(--color-primary)]"
+                      ? "text-[#5f6ad8]"
                       : isDark
                       ? "text-slate-300"
                       : "text-slate-400"
                   }`}
                 />
               </div>
-              <Input
+              <input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(value) => setPassword(value)}
+                onChange={(e) => setPassword(e.target.value)}
                 onFocus={() => setFocusedField("password")}
                 onBlur={() => setFocusedField(null)}
-                placeholder="••••••••"
                 className={`w-full pl-12 pr-12 py-3.5 border-2 rounded-xl transition-all outline-none ${
                   errors.password
                     ? "border-red-300 focus:border-red-500"
                     : focusedField === "password"
-                    ? "border-[var(--color-primary)] bg-white"
-                    : "border-slate-200 focus:border-[var(--color-primary)]"
+                    ? "border-[#5f6ad8] bg-white"
+                    : "border-slate-200 focus:border-[#5f6ad8]"
                 }`}
                 style={
                   isDark
@@ -221,10 +269,11 @@ export function LoginForm({ isDark = false }: LoginFormProps) {
                       }
                     : undefined
                 }
+                placeholder="••••••••"
               />
               <button
                 type="button"
-                onClick={toggleShowPassword}
+                onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -249,31 +298,32 @@ export function LoginForm({ isDark = false }: LoginFormProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                  />
-                  <span>Connexion en cours...</span>
-                </>
-              ) : (
-                <>
-                  <span>Se connecter</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </Button>
-          </motion.div>
+          <motion.button
+            type="submit"
+            disabled={isLoading}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full bg-gradient-to-r from-[#5f6ad8] to-[#444fc0] text-white py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                />
+                <span>Connexion en cours...</span>
+              </>
+            ) : (
+              <>
+                <span>Se connecter</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </motion.button>
         </motion.div>
       </form>
     </motion.div>
   )
 }
+

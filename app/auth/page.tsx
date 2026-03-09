@@ -10,11 +10,11 @@ export default function AdminAuthPage() {
   const [isDark, setIsDark] = useState(false)
 
   const bgClass = isDark
-    ? "bg-gradient-to-br from-[var(--color-bg-dark)] to-[var(--color-bg-dark-alt)]"
-    : "bg-gradient-to-br from-[var(--color-bg-light)] to-[#e6e9f8]"
+    ? "bg-gradient-to-br from-[#1a2a4a] to-[#2a3a5a]"
+    : "bg-gradient-to-br from-[#edeffa] to-[#e6e9f8]"
 
   // Couleur d'accent identique en light et dark (Readdly / Espace d'Administration)
-  const accentGradient = "from-[var(--color-primary)] to-[var(--color-primary-dark)]"
+  const accentGradient = "from-[#5f6ad8] to-[#444fc0]"
 
   return (
     <div className={`min-h-screen ${bgClass} flex flex-col relative overflow-hidden`}>
@@ -32,7 +32,7 @@ export default function AdminAuthPage() {
             transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
             whileHover={{ scale: 1.05 }}
             className={`relative w-16 h-16 rounded-2xl overflow-hidden shadow-xl bg-white border-2 flex items-center justify-center ${
-              isDark ? "border-[var(--color-primary-dark)]" : "border-[var(--color-primary)]"
+              isDark ? "border-[#4430a8]" : "border-[#4c57cf]"
             }`}
           >
             <Image
@@ -64,7 +64,7 @@ export default function AdminAuthPage() {
           type="button"
           onClick={() => setIsDark((prev) => !prev)}
           className={`relative flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
-            isDark ? "border-white/70 bg-[var(--color-surface-dark)]" : "border-[var(--color-primary)] bg-white"
+            isDark ? "border-white/70 bg-[#1f2b4a]" : "border-[#5f6ad8] bg-white"
           }`}
           aria-label={isDark ? "Activer le mode clair" : "Activer le mode sombre"}
         >
@@ -82,7 +82,7 @@ export default function AdminAuthPage() {
           <svg viewBox="0 0 1200 120" className="w-full h-full" preserveAspectRatio="none">
             <path
               d="M0,60 C200,140 300,20 450,70 C550,100 650,10 800,50 C950,90 1050,0 1200,40 L1200,120 L0,120 Z"
-              className={`fill-current ${isDark ? "text-[var(--color-bg-dark)]" : "text-white"}`}
+              className={`fill-current ${isDark ? "text-[#1a2a4a]" : "text-white"}`}
             />
           </svg>
         </div>
@@ -119,7 +119,7 @@ export default function AdminAuthPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
                 className={`text-4xl md:text-5xl font-bold leading-tight ${
-                  isDark ? "text-[var(--color-text-light)]" : "text-slate-900"
+                  isDark ? "text-[#f8f4e6]" : "text-slate-900"
                 }`}
               >
                 Bienvenue dans votre{" "}

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@readdly/common": "git+https://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@github.com/Stage-sujet3/readdly-common.git#dev",
     "axios": "^1.13.5",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.2",

@@ -6,7 +6,7 @@ export const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
     // Required for SuperTokens session cookies
     withCredentials: true,
-    timeout: 15000,
+    timeout: 20000,
 })
 
 // Redirect to login on 401 (expired session)

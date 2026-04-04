@@ -1,6 +1,8 @@
+type BadgeVariant = "primary" | "success" | "warning" | "danger" | "info" | "neutral" | "secondary"
+
 interface BadgeProps {
   children: React.ReactNode
-  variant?: "primary" | "success" | "warning" | "danger" | "info" | "neutral"
+  variant?: BadgeVariant
   className?: string
 }
 
@@ -12,6 +14,7 @@ export function Badge({ children, variant = "neutral", className = "" }: BadgePr
     danger: "bg-red-100 text-red-700",
     info: "bg-purple-100 text-purple-700",
     neutral: "bg-gray-100 text-gray-700",
+    secondary: "bg-slate-100 text-slate-700",
   }
 
   return (

@@ -60,11 +60,12 @@ export function LoginForm({ isDark = false }: LoginFormProps) {
       await submit({ email, password })
       router.push("/dashboard")
     } catch (error: any) {
-      // Pour faciliter le debug entre front et back
-      // (status, payload d'erreur retourné par la gateway / Supertokens)
       if (error?.response) {
         // eslint-disable-next-line no-console
-        console.error("Erreur /auth/signin:", error.response.status, error.response.data)
+        console.error(`Erreur ${error.config?.url || "/auth/signin"}:`, error.response.status, error.response.data)
+      } else {
+        // eslint-disable-next-line no-console
+        console.error("Erreur de connexion:", error)
       }
       setErrors({
         form:

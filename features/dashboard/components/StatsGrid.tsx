@@ -1,8 +1,27 @@
 "use client"
 
-import { Users, UserPlus, Activity, ShieldCheck, TrendingUp } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Users, UserPlus, Activity, ShieldCheck, TrendingUp, Users2, Stethoscope, Baby } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAdminStats } from "@/hooks/useAdminStats"
+
+// Simplified count-up component
+function CountUp({ value }: { value: number | string }) {
+  const [count, setCount] = useState(0)
+  const numericValue = typeof value === 'string' ? parseInt(value) || 0 : value
+
+  useEffect(() => {
+    if (numericValue === 0) return
+    
+    const timer = setTimeout(() => {
+      setCount(numericValue)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [numericValue])
+
+  return <>{numericValue === 0 ? "0" : count}</>
+}
 
 export function StatsGrid() {
   const { statsData } = useAdminStats();
@@ -10,74 +29,85 @@ export function StatsGrid() {
   const stats = [
     {
       title: "Utilisateurs Totaux",
-      value: statsData ? statsData.totalUsers : "...",
-      change: statsData?.growth?.users !== undefined ? `${(statsData.growth.users ?? 0) > 0 ? '+' : ''}${statsData.growth.users ?? 0}%` : "...",
+      value: statsData ? statsData.totalUsers : 0,
+      change: statsData?.growth?.users !== undefined ? `${(statsData.growth.users ?? 0) > 0 ? '+' : ''}${statsData.growth.users ?? 0}%` : "0%",
       isPositive: (statsData?.growth?.users ?? 0) >= 0,
       icon: Users,
       color: "text-indigo-500",
       gradient: "from-indigo-500/20 to-indigo-500/5",
+      bgGradient: "from-indigo-500 to-indigo-600",
     },
     {
       title: "Parents",
-      value: statsData ? statsData.totalParents : "...",
-      change: statsData?.growth?.parents !== undefined ? `${(statsData.growth.parents ?? 0) > 0 ? '+' : ''}${statsData.growth.parents ?? 0}%` : "...",
+      value: statsData ? statsData.totalParents : 0,
+      change: statsData?.growth?.parents !== undefined ? `${(statsData.growth.parents ?? 0) > 0 ? '+' : ''}${statsData.growth.parents ?? 0}%` : "0%",
       isPositive: (statsData?.growth?.parents ?? 0) >= 0,
-      icon: UserPlus,
-      color: "text-emerald-500",
-      gradient: "from-emerald-500/20 to-emerald-500/5",
+      icon: Users2,
+      color: "text-purple-500",
+      gradient: "from-purple-500/20 to-purple-500/5",
+      bgGradient: "from-purple-500 to-purple-600",
     },
     {
       title: "Orthophonistes",
-      value: statsData ? statsData.totalOrthophonistes : "...",
-      change: statsData?.growth?.orthos !== undefined ? `${(statsData.growth.orthos ?? 0) > 0 ? '+' : ''}${statsData.growth.orthos ?? 0}%` : "...",
+      value: statsData ? statsData.totalOrthophonistes : 0,
+      change: statsData?.growth?.orthos !== undefined ? `${(statsData.growth.orthos ?? 0) > 0 ? '+' : ''}${statsData.growth.orthos ?? 0}%` : "0%",
       isPositive: (statsData?.growth?.orthos ?? 0) >= 0,
-      icon: ShieldCheck,
-      color: "text-violet-500",
-      gradient: "from-violet-500/20 to-violet-500/5",
+      icon: Stethoscope,
+      color: "text-pink-500",
+      gradient: "from-pink-500/20 to-pink-500/5",
+      bgGradient: "from-pink-500 to-pink-600",
     },
     {
-      title: "Enfants (Patients)",
-      value: statsData ? statsData.totalEnfants : "...",
-      change: statsData?.growth?.enfants !== undefined ? `${(statsData.growth.enfants ?? 0) > 0 ? '+' : ''}${statsData.growth.enfants ?? 0}%` : "...",
+      title: "Enfants",
+      value: statsData ? statsData.totalEnfants : 0,
+      change: statsData?.growth?.enfants !== undefined ? `${(statsData.growth.enfants ?? 0) > 0 ? '+' : ''}${statsData.growth.enfants ?? 0}%` : "0%",
       isPositive: (statsData?.growth?.enfants ?? 0) >= 0,
-      icon: Activity,
-      color: "text-orange-500",
-      gradient: "from-orange-500/20 to-orange-500/5",
+      icon: Baby,
+      color: "text-amber-500",
+      gradient: "from-amber-500/20 to-amber-500/5",
+      bgGradient: "from-amber-500 to-amber-600",
     },
-  ]
+  ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {stats.map((stat, index) => (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-          whileHover={{ y: -8, scale: 1.02 }}
-          className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white/60 shadow-premium group relative overflow-hidden cursor-default"
+        <div
+          key={stat.title}
+          className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/60 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] cursor-pointer"
         >
-          <div className={`absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br ${stat.gradient} blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-
-          <div className="flex items-start justify-between relative z-10">
-            <div className="space-y-3">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] leading-none mb-1">{stat.title}</p>
-              <h3 className="text-3xl font-bold text-[#1a2a4a] tabular-nums tracking-tighter">{stat.value}</h3>
-              <div className="flex items-center gap-2">
-                <div className={`flex items-center justify-center w-4 h-4 rounded-full ${stat.isPositive ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>
-                  <TrendingUp className={`w-2.5 h-2.5 ${stat.isPositive ? 'text-emerald-600' : 'text-red-500'} ${!stat.isPositive && 'rotate-180'}`} />
-                </div>
-                <span className={`text-xs font-bold tracking-tight ${stat.isPositive ? 'text-emerald-600' : 'text-red-500'}`}>{stat.change}</span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">vs mois dernier</span>
-              </div>
+          <div className="flex items-center justify-between mb-4">
+            <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.gradient}`}>
+              <stat.icon className={`w-6 h-6 ${stat.color}`} />
             </div>
-            
-            <div className={`p-4 bg-gradient-to-br ${stat.gradient} rounded-2xl border border-white/40 shadow-sm group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
-              <stat.icon className={`w-6 h-6 ${stat.color} drop-shadow-sm`} />
+            <div className="flex items-center gap-1">
+              {stat.isPositive ? (
+                <TrendingUp className="w-4 h-4 text-green-500" />
+              ) : (
+                <TrendingUp className="w-4 h-4 text-red-500 rotate-180" />
+              )}
+              <span className={`text-sm font-bold ${stat.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                {stat.change}
+              </span>
             </div>
           </div>
-        </motion.div>
+          
+          <div className="space-y-1">
+            <h3 className="text-3xl font-bold text-slate-900">
+              <CountUp value={stat.value} />
+            </h3>
+            <p className="text-sm font-medium text-slate-600">{stat.title}</p>
+          </div>
+          
+          {/* Progress bar */}
+          <div className="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div 
+              className={`h-full bg-gradient-to-r ${stat.bgGradient} transition-all duration-1000`}
+              style={{ width: `${Math.min(100, (stat.value as number) / 2)}%` }}
+            />
+          </div>
+        </div>
       ))}
     </div>
-  )
+  );
 }

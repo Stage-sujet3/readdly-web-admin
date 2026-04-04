@@ -148,9 +148,9 @@ export default function AdminAuthPage() {
               className="grid grid-cols-3 gap-4 mt-4"
             >
               {[
-                { icon: Shield, text: "Sécurisé" },
-                { icon: CheckCircle2, text: "Fiable" },
-                { icon: AlertCircle, text: "Support 24/7" },
+                { icon: Shield, text: "Gestion Centralisée" },
+                { icon: CheckCircle2, text: "Analytics & Insights" },
+                { icon: AlertCircle, text: "Gestion Utilisateurs" },
               ].map((feature, index) => (
                 <motion.div
                   key={index}

@@ -28,7 +28,13 @@ export function useAdminStats() {
     async function fetchStats() {
       try {
         setLoading(true)
+        // Add timeout configuration to prevent timeout errors
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+        
         const response = await getAdminStats()
+        clearTimeout(timeoutId)
+        
         if (response.data?.success) {
           setStatsData(response.data.data)
         } else {
@@ -36,7 +42,10 @@ export function useAdminStats() {
         }
       } catch (err: any) {
         console.error("[useAdminStats] Failed:", err)
-        setError(err?.message || "Erreur réseau")
+        // Don't set error for timeout/abort errors
+        if (err.name !== 'AbortError') {
+          setError(err?.message || "Erreur réseau")
+        }
       } finally {
         setLoading(false)
       }

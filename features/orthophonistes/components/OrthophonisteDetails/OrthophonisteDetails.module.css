@@ -1,0 +1,262 @@
+.drawerContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f8fafc; /* Clean dashboard background */
+  width: 100%;
+  max-width: 60rem; 
+  margin: 0 auto;
+  box-shadow: -10px 0 30px -10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  position: relative;
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 2.5rem 2rem 2rem 2rem;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.avatar {
+  width: 5rem;
+  height: 5rem;
+  background-color: #f1f5f9;
+  border-radius: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #475569;
+  font-size: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.name {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.email {
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.roleBadge {
+  padding: 0.25rem 0.75rem;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+}
+
+.statusBadge {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.contentWrapper {
+  max-width: 54rem; 
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section {
+  background-color: white;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.titleIcon {
+  color: #64748b;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.infoGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.smallIcon {
+  width: 1rem;
+  height: 1rem;
+  color: #94a3b8;
+}
+
+.value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  background-color: #f8fafc;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #f1f5f9;
+  word-break: break-word; /* Prevents long emails/addresses from overflowing */
+}
+
+/* Children Cards inside section */
+.childCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid #f1f5f9;
+  margin-bottom: 0.75rem;
+}
+
+.childCard:last-child {
+  margin-bottom: 0;
+}
+
+.childNameBox {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.childIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #eff6ff; /* Blue tint for patients instead of pink */
+  color: #3b82f6;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.childName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.childAge {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.childLevel {
+  text-align: right;
+  background-color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.footer {
+  padding: 1.5rem 2rem;
+  background-color: white;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.btnClose {
+  padding: 0.875rem 2rem;
+  background-color: white;
+  color: #334155;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.btnClose:hover {
+  background-color: #f8fafc;
+}
+
+.btnDelete {
+  padding: 0.875rem 1.5rem;
+  background-color: white;
+  color: #ef4444;
+  border-radius: 0.75rem;
+  border: 1px solid #fecaca;
+  transition: all 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.btnDelete:hover {
+  background-color: #fef2f2;
+}

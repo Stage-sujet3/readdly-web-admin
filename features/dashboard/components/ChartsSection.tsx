@@ -18,7 +18,7 @@ export function ChartsSection() {
   const { statsData } = useAdminStats();
 
   const userRoleData = [
-    { name: "Enfants (Patients)", value: statsData?.totalEnfants || 0, color: "#6366F1" },
+    { name: "Enfants", value: statsData?.totalEnfants || 0, color: "#f98806ff" },
     { name: "Parents", value: statsData?.totalParents || 0, color: "#8B5CF6" },
     { name: "Orthophonistes", value: statsData?.totalOrthophonistes || 0, color: "#EC4899" },
   ];
@@ -32,8 +32,8 @@ export function ChartsSection() {
         className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white/60 shadow-premium"
       >
         <h3 className="text-xl font-bold text-slate-800 mb-8 px-2">Répartition des Utilisateurs</h3>
-        <div className="h-[350px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[350px] w-full min-h-[350px] min-w-[300px]">
+          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={350}>
             <PieChart>
               <Pie
                 data={userRoleData}
@@ -75,8 +75,8 @@ export function ChartsSection() {
         className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white/60 shadow-premium"
       >
         <h3 className="text-xl font-bold text-slate-800 mb-8 px-2">Croissance Utilisateurs (6 Mois)</h3>
-        <div className="h-[350px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[350px] w-full min-h-[350px] min-w-[300px]">
+          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={350}>
             <BarChart data={statsData?.monthlyGrowth?.length ? statsData.monthlyGrowth : defaultMonthlyData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
               <XAxis 

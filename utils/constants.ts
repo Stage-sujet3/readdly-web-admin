@@ -2,7 +2,7 @@
 export const APP_CONFIG = {
   name: 'Readdly Admin',
   version: '1.0.0',
-  apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
 }
 
 // Color palette

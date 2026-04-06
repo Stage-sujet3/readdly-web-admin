@@ -47,7 +47,7 @@ export function ParentDetails({
   const parentChildren = selectedParent.enfants || (selectedParent as any).children || [];
 
   return (
-    <Sheet open={!!selectedParent} onOpenChange={(open) => !open && setSelectedParent(null)}>
+    <Sheet open={!!selectedParent} onOpenChange={(open) => !open && setSelectedParent(null)} size="xl">
       <div className={styles.drawerContainer}>
         <div className={styles.header}>
           <div className={styles.headerContent}>

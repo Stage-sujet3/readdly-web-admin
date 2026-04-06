@@ -47,7 +47,7 @@ export function OrthophonisteDetails({
   const patients = selectedOrthophoniste.enfantsSuivis || (selectedOrthophoniste as any).patients || [];
 
   return (
-    <Sheet open={!!selectedOrthophoniste} onOpenChange={(open) => !open && setSelectedOrthophoniste(null)}>
+    <Sheet open={!!selectedOrthophoniste} onOpenChange={(open) => !open && setSelectedOrthophoniste(null)} size="xl">
       <div className={styles.drawerContainer}>
         <div className={styles.header}>
           <div className={styles.headerContent}>

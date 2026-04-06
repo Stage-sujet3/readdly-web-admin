@@ -18,7 +18,11 @@ import {
   ChevronDown,
   UserCheck,
   Users2,
-  X
+  X,
+  BookOpen,
+  BookA,
+  FileText,
+  ImagePlay
 } from "lucide-react"
 import { useSidebar } from "@/contexts/SidebarContext"
 import { useAdminStats } from "@/hooks/useAdminStats"
@@ -75,7 +79,13 @@ export function Sidebar() {
       path: "/dashboard/library", 
       label: "Bibliothèque", 
       icon: Library,
-      count: 0
+      count: 0,
+      hasSubmenu: true,
+      submenu: [
+        { path: "/dashboard/library/stories", label: "Histoires", icon: BookOpen, count: 0 },
+        { path: "/dashboard/library/dictionary", label: "Dictionnaire", icon: BookA, count: 0 },
+        { path: "/dashboard/library/texts", label: "Textes Éducatifs", icon: FileText, count: 0 }
+      ]
     },
     { 
       path: "/dashboard/messages", 

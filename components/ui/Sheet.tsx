@@ -8,7 +8,23 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function Sheet({ open, onOpenChange, children }: { open: boolean, onOpenChange: (o: boolean) => void, children: React.ReactNode }) {
+interface SheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+}
+
+export function Sheet({ open, onOpenChange, children, size = "md" }: SheetProps) {
+  const sizeClasses = {
+    sm: "sm:max-w-sm",
+    md: "sm:max-w-md",
+    lg: "sm:max-w-lg",
+    xl: "sm:max-w-xl",
+    "2xl": "sm:max-w-2xl",
+    full: "sm:max-w-full",
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -25,7 +41,10 @@ export function Sheet({ open, onOpenChange, children }: { open: boolean, onOpenC
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0.5 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed z-50 gap-4 bg-white/90 backdrop-blur-xl p-6 shadow-2xl overflow-y-auto right-0 top-0 h-full w-full sm:max-w-md border-l border-white/60"
+            className={cn(
+              "fixed z-50 gap-4 bg-white/90 backdrop-blur-xl p-6 shadow-2xl overflow-y-auto right-0 top-0 h-full w-full border-l border-white/60",
+              sizeClasses[size] || sizeClasses.md
+            )}
           >
             <button 
               onClick={() => onOpenChange(false)}

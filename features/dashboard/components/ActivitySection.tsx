@@ -51,24 +51,25 @@ export function ActivitySection() {
              <span className="text-[10px] font-bold text-[#5f6ad8] uppercase tracking-wider">Suivi en direct</span>
           </div>
         </div>
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] w-full min-h-[300px] min-w-[300px]">
+          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={300}>
             <LineChart data={statsData?.weeklyActivity?.length ? statsData.weeklyActivity : defaultActivityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.03)" />
               <XAxis 
                 dataKey="day" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fontSize: 12, fontWeight: 500, fill: '#64748b' }}
+                tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
                 dy={15}
               />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fontSize: 12, fontWeight: 500, fill: '#64748b' }}
+                tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
               />
               <Tooltip 
-                contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 40px rgba(0,0,0,0.12)' }}
+                cursor={{ fill: 'rgba(95, 106, 216, 0.04)' }}
+                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
               />
               <Line 
                 type="monotone" 

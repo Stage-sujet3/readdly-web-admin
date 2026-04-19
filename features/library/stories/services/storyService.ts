@@ -17,6 +17,15 @@ export const storyService = {
     return response.data.story;
   },
 
+  uploadPdfStory: async (formData: FormData): Promise<any> => {
+    const response = await api.post('/learning/stories/pdf', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   updateStory: async (id: string, data: Partial<Story>): Promise<Story> => {
     const response = await api.patch(`/learning/stories/${id}`, data);
     return response.data.story;

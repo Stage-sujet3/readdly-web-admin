@@ -23,12 +23,12 @@ export default function StoriesPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, title: string } | null>(null);
   
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: any, isFormData: boolean = false) => {
     try {
       if (selectedStory) {
         await updateStory(selectedStory.id, data);
       } else {
-        await addStory(data);
+        await addStory(data, isFormData);
       }
       setIsFormOpen(false);
     } catch (error) {

@@ -12,7 +12,7 @@ import { fileToBase64 } from '@/utils/helpers';
 interface StoryFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: any, isFormData?: boolean) => void;
   initialData?: Story | null;
 }
 
@@ -31,6 +31,8 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
   
   const coverInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
+
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -57,6 +59,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
       setStatus('brouillon');
       setLanguage('Français');
       setPdfPreview(null);
+      setPdfFile(null);
     }
   }, [initialData, isOpen]);
 
@@ -82,28 +85,52 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
         const base64 = await fileToBase64(file);
         setPdfFile(file);
         setPdfPreview(base64);
-        setContent(base64); // Storing as base64 for now as per current pattern
       } catch (error) {
         console.error("Failed to convert PDF to base64:", error);
       }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ 
-      title, 
-      description, 
-      content, 
-      coverImage, 
-      ageGroup, 
-      level, 
-      theme, 
-      status, 
-      language,
-      type: 'PDF' // Ensuring type is PDF
-    });
-    onClose();
+    setIsUploading(true);
+    
+    try {
+      if (pdfFile) {
+        // Mode PDF : on retourne un FormData
+        const formData = new FormData();
+        formData.append('file', pdfFile);
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('coverImage', coverImage);
+        formData.append('ageGroup', ageGroup);
+        formData.append('level', level);
+        formData.append('theme', theme);
+        formData.append('status', status);
+        formData.append('language', language);
+        
+        await onSave(formData, true); // true = isFormData
+      } else {
+        // Mode classique
+        await onSave({ 
+          title, 
+          description, 
+          content, 
+          coverImage, 
+          ageGroup, 
+          level, 
+          theme, 
+          status, 
+          language,
+          type: 'TEXT'
+        }, false);
+      }
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -294,10 +321,10 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
 
               {/* Footer Actions */}
               <div className="shrink-0 pt-8 mt-4 border-t border-[#e8e4db] flex justify-end items-center gap-4">
-                <button type="button" onClick={onClose} className="px-8 py-3.5 text-slate-500 font-bold hover:bg-slate-100 rounded-2xl transition-all">Annuler</button>
-                <button type="submit" className="px-10 py-3.5 bg-gradient-to-r from-[#5f6ad8] to-[#444fc0] text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 hover:shadow-2xl hover:shadow-indigo-300 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center gap-3">
-                  <Check className="w-6 h-6" /> 
-                  <span>{isEdit ? "Mettre à jour" : "Créer l'histoire"}</span>
+                <button type="button" onClick={onClose} disabled={isUploading} className="px-8 py-3.5 text-slate-500 font-bold hover:bg-slate-100 rounded-2xl transition-all disabled:opacity-50">Annuler</button>
+                <button type="submit" disabled={isUploading} className="px-10 py-3.5 bg-gradient-to-r from-[#5f6ad8] to-[#444fc0] text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 hover:shadow-2xl hover:shadow-indigo-300 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center gap-3 disabled:opacity-70 disabled:hover:-translate-y-0">
+                  {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Check className="w-6 h-6" />}
+                  <span>{isUploading ? "Extraction en cours..." : isEdit ? "Mettre à jour" : "Créer l'histoire"}</span>
                 </button>
               </div>
             </form>

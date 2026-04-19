@@ -24,9 +24,13 @@ export function useStories() {
     fetchStories();
   }, []);
 
-  const addStory = async (data: Partial<Story>) => {
+  const addStory = async (data: any, isFormData: boolean = false) => {
     try {
-      await storyService.addStory(data);
+      if (isFormData) {
+        await storyService.uploadPdfStory(data);
+      } else {
+        await storyService.addStory(data);
+      }
       await fetchStories();
     } catch (err) {
       console.error('Failed to add story:', err);

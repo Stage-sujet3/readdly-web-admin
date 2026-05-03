@@ -337,121 +337,521 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
 
 export function StoryViewModal({ isOpen, onClose, content }: { isOpen: boolean, onClose: () => void, content: Story | null }) {
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  
+  const [flipDirection, setFlipDirection] = useState<'left' | 'right'>('right');
+
+  const WORDS_PER_PAGE = 220;
+
+  // Detect if text is Arabic
+  const isArabic = React.useMemo(() => {
+    const arabicRegex = /[\u0600-\u06FF]/;
+    return arabicRegex.test(content?.content || '');
+  }, [content?.content]);
+
+  const pages = React.useMemo(() => {
+    if (!content?.content) return ["Le contenu de l'histoire est vide ou indisponible."];
+    const words = content.content.split(/\s+/).filter(Boolean);
+    const result: string[] = [];
+    for (let i = 0; i < words.length; i += WORDS_PER_PAGE) {
+      result.push(words.slice(i, i + WORDS_PER_PAGE).join(' '));
+    }
+    return result.length > 0 ? result : ["Le contenu de l'histoire est vide ou indisponible."];
+  }, [content?.content]);
+
+  const totalPages = pages.length;
+  const progress = totalPages > 1 ? (currentPage / (totalPages - 1)) * 100 : 100;
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentPage(0);
+      const timer = setTimeout(() => setLoading(false), 450);
+      return () => clearTimeout(timer);
+    } else {
+      setLoading(true);
+    }
+  }, [isOpen]);
+
   if (!isOpen || !content) return null;
 
-  // content.content stores the base64 or URL
-  const pdfUrl = content.content;
-  const isPdf = pdfUrl?.startsWith('data:application/pdf') || pdfUrl?.endsWith('.pdf');
+  const goNext = () => {
+    if (currentPage < totalPages - 1) {
+      setFlipDirection('right');
+      setCurrentPage(p => p + 1);
+    }
+  };
+
+  const goPrev = () => {
+    if (currentPage > 0) {
+      setFlipDirection('left');
+      setCurrentPage(p => p - 1);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') goNext();
+    if (e.key === 'ArrowLeft') goPrev();
+    if (e.key === 'Escape') onClose();
+  };
+
+  // ── Theme palette (matches dashboard) ──
+  const C = {
+    primary:     '#5f6ad8',
+    primaryDark: '#444fc0',
+    primaryDeep: '#3a44a5',
+    bg:          '#0f172a',   // deepest dark
+    navy:        '#1a2a4a',   // dashboard dark bg
+    navyAlt:     '#162035',
+    surface:     '#1f2b4a',   // card surface
+    surfaceAlt:  '#253252',
+    border:      'rgba(95,106,216,0.18)',
+    borderSoft:  'rgba(255,255,255,0.06)',
+    textPrimary: '#e8eaf8',
+    textMuted:   'rgba(200,205,240,0.55)',
+    glow:        'rgba(95,106,216,0.25)',
+  };
+
+  // Arabic font stack
+  const arabicFontStack = '"Scheherazade New", "Amiri", "Noto Naskh Arabic", "Noto Sans Arabic", "Arabic Typesetting", system-ui, sans-serif';
+  const latinFontStack  = 'Georgia, "Times New Roman", serif';
+
+  const fontFamily   = isArabic ? arabicFontStack : latinFontStack;
+  const textDir      = isArabic ? 'rtl' : 'ltr';
+  const textAlign    = isArabic ? 'right' : 'justify';
+  const textIndent   = isArabic ? '0'     : '2em';
 
   return (
     <AnimatePresence>
-      <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-8 md:pl-[340px] perspective-[2000px] ${isFullScreen ? 'p-0 md:pl-0' : ''}`}>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" />
-
+      <div
+        className={`fixed inset-0 z-[60] flex items-center justify-center ${isFullScreen ? '' : 'p-3 md:p-5 md:pl-[320px]'}`}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        style={{ outline: 'none' }}
+      >
+        {/* Backdrop */}
         <motion.div
-          initial={{ opacity: 0, y: 100, scale: 0.9 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0"
+          style={{ background: 'rgba(10,14,30,0.92)', backdropFilter: 'blur(12px)' }}
+        />
+
+        {/* Ambient glow */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: '700px', height: '500px',
+            background: `radial-gradient(ellipse, ${C.glow} 0%, transparent 70%)`,
+            borderRadius: '50%',
+          }}
+        />
+
+        {/* ═══ MAIN MODAL ═══ */}
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.94 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 100, scale: 0.9 }}
-          className={`relative bg-slate-900 rounded-3xl shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col z-10 
-            ${isFullScreen ? 'w-full h-full rounded-none' : 'w-full max-w-6xl h-[90vh]'}`}
+          exit={{ opacity: 0, y: 50, scale: 0.94 }}
+          transition={{ type: 'spring', damping: 26, stiffness: 200 }}
+          className="relative z-10 flex flex-col"
+          style={{
+            width:  isFullScreen ? '100vw' : 'min(94vw, 880px)',
+            height: isFullScreen ? '100vh' : 'min(92vh, 700px)',
+          }}
         >
-          {/* Reader Top Bar */}
-          <div className="bg-slate-800/50 border-b border-white/5 px-6 py-4 flex items-center justify-between z-30">
-            <div className="flex items-center gap-4">
-               <div className="w-10 h-10 bg-[#5f6ad8] rounded-xl flex items-center justify-center shadow-lg">
-                 <BookOpen className="w-6 h-6 text-white" />
-               </div>
-               <div>
-                  <h3 className="text-white font-bold text-lg select-none">{content.title}</h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{content.theme}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-600" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{content.language}</span>
-                  </div>
-               </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <button onClick={() => setIsFullScreen(!isFullScreen)} className="p-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-                <Maximize2 className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={onClose} 
-                className="p-2.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all shadow-lg shadow-red-500/10"
+          {/* Loading overlay */}
+          <AnimatePresence>
+            {loading && (
+              <motion.div
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+                style={{
+                  background: C.navy,
+                  borderRadius: isFullScreen ? '0' : '1.5rem',
+                  border: `1px solid ${C.border}`,
+                }}
               >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                  style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.primaryDark})` }}
+                >
+                  <BookOpen className="w-7 h-7 text-white animate-pulse" />
+                </div>
+                <p style={{ color: C.textMuted, fontFamily: latinFontStack, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                  Chargement...
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* PDF Viewer Interface */}
-          <div className="flex-1 relative bg-[#1c1c1c] flex flex-col pt-4 overflow-hidden">
-             {loading && (
-               <div className="absolute inset-0 flex flex-col items-center justify-center z-40 bg-slate-900/60 backdrop-blur-sm">
-                 <Loader2 className="w-12 h-12 text-[#5f6ad8] animate-spin mb-4" />
-                 <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Préparation de votre livre...</p>
-               </div>
-             )}
-
-             {isPdf ? (
-               <div className="flex-1 flex flex-col overflow-hidden px-4 md:px-0">
-                  <div className="flex-1 max-w-4xl mx-auto w-full relative shadow-2xl rounded-lg overflow-hidden border border-white/5">
-                    <iframe 
-                      src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`} 
-                      className="w-full h-full bg-white transition-opacity duration-500" 
-                      onLoad={() => setLoading(false)}
-                      title={content.title}
-                    />
+          {/* ── BOOK CONTAINER ── */}
+          <div
+            className="w-full h-full flex flex-col"
+            style={{
+              background: `linear-gradient(160deg, ${C.navy} 0%, ${C.navyAlt} 100%)`,
+              borderRadius: isFullScreen ? '0' : '1.5rem',
+              border: `1px solid ${C.border}`,
+              boxShadow: `0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px ${C.borderSoft}, inset 0 1px 0 rgba(255,255,255,0.05)`,
+              overflow: 'hidden',
+            }}
+          >
+            {/* ── HEADER BAR ── */}
+            <div
+              className="flex items-center justify-between px-5 py-3.5 shrink-0"
+              style={{
+                background: `linear-gradient(135deg, ${C.surface} 0%, ${C.surfaceAlt} 100%)`,
+                borderBottom: `1px solid ${C.border}`,
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.primaryDark})`, boxShadow: `0 4px 12px ${C.glow}` }}
+                >
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3
+                    className="font-bold text-sm leading-tight select-none"
+                    style={{ color: C.textPrimary }}
+                    dir={textDir}
+                  >
+                    {content.title}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {[content.theme, content.language, content.level].filter(Boolean).map((tag, i) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: C.textMuted, display: 'inline-block' }} />}
+                        <span style={{ fontSize: '0.6rem', fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                          {tag}
+                        </span>
+                      </React.Fragment>
+                    ))}
                   </div>
-                  
-                  {/* Interactive Controls (Simplified simulation of book experience) */}
-                  {!loading && (
-                    <div className="py-8 flex flex-col items-center gap-6 z-20">
-                      <div className="flex items-center gap-12">
-                        <button className="w-14 h-14 bg-white/5 hover:bg-[#5f6ad8] text-white rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-xl border border-white/5">
-                          <ChevronLeft className="w-8 h-8" />
-                        </button>
-                        
-                        <div className="flex items-center gap-3">
-                          {[1, 2, 3, 4, 5].map((p) => (
-                            <div key={p} className={`w-3 h-3 rounded-full transition-all duration-300 ${p === currentPage ? 'bg-[#5f6ad8] w-8' : 'bg-slate-700'}`} />
-                          ))}
-                        </div>
+                </div>
+              </div>
 
-                        <button className="w-14 h-14 bg-white/5 hover:bg-[#5f6ad8] text-white rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-xl border border-white/5">
-                          <ChevronRight className="w-8 h-8" />
-                        </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsFullScreen(!isFullScreen)}
+                  className="p-2 rounded-xl transition-all hover:scale-110"
+                  style={{ color: C.textMuted, background: C.borderSoft }}
+                  title={isFullScreen ? 'Réduire' : 'Plein écran'}
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-xl transition-all hover:scale-110"
+                  style={{ color: '#f87171', background: 'rgba(248,113,113,0.1)' }}
+                  title="Fermer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* ── BOOK BODY ── */}
+            <div className="flex flex-1 min-h-0">
+
+              {/* Left spine */}
+              <div
+                className="shrink-0 flex flex-col items-center justify-between py-8"
+                style={{
+                  width: '44px',
+                  background: `linear-gradient(180deg, ${C.primaryDeep} 0%, ${C.primaryDark} 40%, ${C.primaryDeep} 100%)`,
+                  borderRight: `1px solid ${C.border}`,
+                  boxShadow: 'inset -3px 0 10px rgba(0,0,0,0.3)',
+                }}
+              >
+                {/* Title vertical */}
+                <div
+                  style={{
+                    writingMode: 'vertical-rl',
+                    transform: 'rotate(180deg)',
+                    fontFamily: isArabic ? arabicFontStack : latinFontStack,
+                    fontSize: '0.55rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.12em',
+                    color: 'rgba(255,255,255,0.35)',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                    maxHeight: '130px',
+                    overflow: 'hidden',
+                  }}
+                  dir="ltr"
+                >
+                  {content.title}
+                </div>
+
+                {/* Spine stripes */}
+                <div className="flex flex-col items-center gap-2.5">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} style={{ width: '18px', height: '1px', background: 'rgba(255,255,255,0.15)', borderRadius: '1px' }} />
+                  ))}
+                </div>
+
+                {/* Spine logo mark */}
+                <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.05)' }} />
+              </div>
+
+              {/* Page area */}
+              <div
+                className="flex-1 flex flex-col min-h-0 relative"
+                style={{ background: C.surface }}
+              >
+                {/* Crease shadow */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 pointer-events-none z-10"
+                  style={{ width: '24px', background: 'linear-gradient(90deg, rgba(0,0,0,0.15) 0%, transparent 100%)' }}
+                />
+
+                {/* Page header */}
+                <div
+                  className="shrink-0 flex items-center justify-between px-8 pt-4 pb-2.5"
+                  style={{ borderBottom: `1px solid ${C.borderSoft}` }}
+                >
+                  <span style={{ fontSize: '0.58rem', color: C.textMuted, fontFamily: latinFontStack, fontStyle: 'italic' }}>
+                    Readdly
+                  </span>
+                  <span style={{ fontSize: '0.65rem', color: C.primary, fontFamily: latinFontStack }}>✦</span>
+                  <span style={{ fontSize: '0.58rem', color: C.textMuted, fontFamily: isArabic ? arabicFontStack : latinFontStack, fontStyle: isArabic ? 'normal' : 'italic', direction: textDir }}>
+                    {content.title}
+                  </span>
+                </div>
+
+                {/* Scrollable text content */}
+                <div
+                  className="flex-1 overflow-y-auto px-8 py-5 min-h-0"
+                  dir={textDir}
+                  style={{ scrollbarWidth: 'thin', scrollbarColor: `${C.primary}40 transparent` }}
+                >
+                  {/* Title block on first page */}
+                  {currentPage === 0 && (
+                    <div className="text-center mb-8" dir={textDir}>
+                      <h2
+                        style={{
+                          fontSize: '1.6rem',
+                          fontFamily,
+                          fontWeight: 700,
+                          color: C.textPrimary,
+                          lineHeight: 1.3,
+                          marginBottom: '0.5rem',
+                          direction: textDir,
+                        }}
+                      >
+                        {content.title}
+                      </h2>
+                      {/* Divider */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', margin: '1rem 0' }}>
+                        <div style={{ flex: 1, height: '1px', background: `linear-gradient(${isArabic ? '270' : '90'}deg, transparent, ${C.primary}50)` }} />
+                        <span style={{ fontSize: '0.9rem', color: C.primary, opacity: 0.7 }}>❧</span>
+                        <div style={{ flex: 1, height: '1px', background: `linear-gradient(${isArabic ? '90' : '270'}deg, transparent, ${C.primary}50)` }} />
                       </div>
-                      
-                      <div className="px-6 py-2 bg-slate-800/80 rounded-full border border-white/5 shadow-2xl">
-                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Expérience de lecture optimisée</p>
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        {[content.theme, content.language, content.level, content.ageGroup ? `${content.ageGroup} ans` : null].filter(Boolean).map((tag, i) => (
+                          <span
+                            key={i}
+                            style={{
+                              fontSize: '0.6rem',
+                              fontWeight: 700,
+                              color: C.primary,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.12em',
+                              background: `${C.primary}15`,
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              border: `1px solid ${C.primary}25`,
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}
-               </div>
-             ) : (
-               <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-                  <div className="w-24 h-24 bg-red-500/10 rounded-3xl flex items-center justify-center mb-6">
-                    <X className="w-12 h-12 text-red-500" />
-                  </div>
-                  <h3 className="text-white text-2xl font-bold mb-4">Média non supporté</h3>
-                  <p className="text-slate-500 max-w-sm font-medium italic leading-relaxed">
-                    Cette histoire n'est pas au format PDF. Veuillez modifier l'histoire pour importer un fichier PDF valide.
-                  </p>
-                  <button onClick={onClose} className="mt-8 px-8 py-3 bg-white/5 text-white font-bold rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
-                    Retourner à la bibliothèque
-                  </button>
-               </div>
-             )}
+
+                  {/* Page text with animation */}
+                  <motion.div
+                    key={currentPage}
+                    initial={{ opacity: 0, x: flipDirection === 'right' ? 24 : -24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.28, ease: 'easeOut' }}
+                    dir={textDir}
+                  >
+                    {pages[currentPage]?.split(/(?<=[.!?؟])\s+/).map((sentence, i) => {
+                      // Drop cap on first sentence of first page (only for non-Arabic)
+                      if (!isArabic && currentPage === 0 && i === 0 && sentence.length > 1) {
+                        const firstLetter = sentence[0];
+                        const rest = sentence.slice(1);
+                        return (
+                          <p
+                            key={i}
+                            style={{
+                              fontFamily,
+                              fontSize: '1.05rem',
+                              lineHeight: '1.9',
+                              color: C.textPrimary,
+                              marginBottom: '0.8rem',
+                              textAlign,
+                              direction: textDir,
+                            }}
+                          >
+                            <span
+                              style={{
+                                float: 'left',
+                                fontSize: '3.8rem',
+                                lineHeight: '0.75',
+                                fontWeight: 700,
+                                color: C.primary,
+                                fontFamily: latinFontStack,
+                                marginRight: '6px',
+                                marginTop: '6px',
+                              }}
+                            >
+                              {firstLetter}
+                            </span>
+                            {rest}
+                          </p>
+                        );
+                      }
+                      return (
+                        <p
+                          key={i}
+                          style={{
+                            fontFamily,
+                            fontSize: '1.05rem',
+                            lineHeight: isArabic ? '2.2' : '1.9',
+                            color: C.textPrimary,
+                            marginBottom: '0.8rem',
+                            textAlign,
+                            direction: textDir,
+                            textIndent: (currentPage === 0 && i === 0) ? '0' : textIndent,
+                          }}
+                        >
+                          {sentence}
+                        </p>
+                      );
+                    })}
+                  </motion.div>
+                </div>
+
+                {/* Page footer */}
+                <div
+                  className="shrink-0 flex items-center justify-between px-8 pb-3.5 pt-2.5"
+                  style={{ borderTop: `1px solid ${C.borderSoft}` }}
+                >
+                  <span style={{ fontSize: '0.58rem', color: C.textMuted, fontFamily: latinFontStack, fontStyle: 'italic' }}>
+                    {content.ageGroup ? `Tranche ${content.ageGroup} ans` : ''}
+                  </span>
+                  <span style={{ fontSize: '0.68rem', color: `${C.primary}90`, fontFamily: latinFontStack, fontWeight: 700 }}>
+                    — {currentPage + 1} —
+                  </span>
+                  <span style={{ fontSize: '0.58rem', color: C.textMuted, fontFamily: latinFontStack, fontStyle: 'italic' }}>
+                    {content.author || 'Readdly'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right edge shadow */}
+              <div style={{ width: '10px', background: 'linear-gradient(270deg, rgba(0,0,0,0.12) 0%, transparent 100%)', shrink: 0, flexShrink: 0 }} />
+            </div>
+
+            {/* ── NAVIGATION ── */}
+            <div
+              className="flex items-center justify-between px-5 py-3 shrink-0"
+              style={{ borderTop: `1px solid ${C.border}`, background: `${C.navyAlt}` }}
+            >
+              {/* Prev */}
+              <motion.button
+                whileHover={{ scale: currentPage > 0 ? 1.06 : 1 }}
+                whileTap={{ scale: currentPage > 0 ? 0.95 : 1 }}
+                onClick={goPrev}
+                disabled={currentPage === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all"
+                style={{
+                  background: currentPage === 0 ? C.borderSoft : `${C.primary}20`,
+                  color: currentPage === 0 ? 'rgba(255,255,255,0.2)' : C.primary,
+                  border: `1px solid ${currentPage === 0 ? 'transparent' : C.primary + '40'}`,
+                  fontSize: '0.8rem',
+                  cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
+                  fontFamily: latinFontStack,
+                }}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Précédente
+              </motion.button>
+
+              {/* Progress dots */}
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: Math.min(totalPages, 9) }).map((_, i) => {
+                    const targetPage = totalPages <= 9 ? i : Math.round((i / 8) * (totalPages - 1));
+                    const isActive = totalPages <= 9 ? i === currentPage : Math.abs(targetPage - currentPage) < Math.ceil(totalPages / 9);
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setFlipDirection(targetPage > currentPage ? 'right' : 'left');
+                          setCurrentPage(targetPage);
+                        }}
+                        style={{
+                          width: isActive ? '18px' : '5px',
+                          height: '5px',
+                          borderRadius: '3px',
+                          background: isActive ? C.primary : `${C.primary}35`,
+                          transition: 'all 0.3s ease',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: 0,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+                <span style={{ fontSize: '0.58rem', color: C.textMuted, letterSpacing: '0.08em', fontFamily: latinFontStack }}>
+                  {currentPage + 1} / {totalPages}
+                </span>
+              </div>
+
+              {/* Next */}
+              <motion.button
+                whileHover={{ scale: currentPage < totalPages - 1 ? 1.06 : 1 }}
+                whileTap={{ scale: currentPage < totalPages - 1 ? 0.95 : 1 }}
+                onClick={goNext}
+                disabled={currentPage === totalPages - 1}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all"
+                style={{
+                  background: currentPage === totalPages - 1 ? C.borderSoft : `${C.primary}20`,
+                  color: currentPage === totalPages - 1 ? 'rgba(255,255,255,0.2)' : C.primary,
+                  border: `1px solid ${currentPage === totalPages - 1 ? 'transparent' : C.primary + '40'}`,
+                  fontSize: '0.8rem',
+                  cursor: currentPage === totalPages - 1 ? 'not-allowed' : 'pointer',
+                  fontFamily: latinFontStack,
+                }}
+              >
+                Suivante
+                <ChevronRight className="w-4 h-4" />
+              </motion.button>
+            </div>
+
+            {/* Reading progress bar */}
+            <div style={{ height: '3px', background: `${C.primary}15` }}>
+              <motion.div
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.4 }}
+                style={{
+                  height: '100%',
+                  background: `linear-gradient(90deg, ${C.primaryDark}, ${C.primary})`,
+                }}
+              />
+            </div>
           </div>
-          
-          {/* Bottom Shadow Overlay */}
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent pointer-events-none z-10" />
         </motion.div>
       </div>
     </AnimatePresence>
   );
 }
+

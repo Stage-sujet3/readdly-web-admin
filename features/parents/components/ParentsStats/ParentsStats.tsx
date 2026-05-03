@@ -40,7 +40,7 @@ export function ParentsStats({ stats }: ParentsStatsProps) {
         </div>
         <div className={styles.statInfo}>
           <span className={styles.statValue}>{stats.totalChildren}</span>
-          <span className={styles.statLabel}>Enfants Inscrits</span>
+          <span className={styles.statLabel}>Nombre d'enfants total</span>
         </div>
       </div>
       

@@ -16,6 +16,11 @@ const nextConfig = {
         source: "/api/:path*",
         destination: `${API_GATEWAY}/:path*`,
       },
+      // Proxy user-service REST calls (enfants data not available via gateway)
+      {
+        source: "/user-service/:path*",
+        destination: `${USER_SERVICE_URL}/:path*`,
+      },
       // Proxy uploaded files (CIN, verification photos) from user-service
       // This avoids CORS errors when loading images in the admin dashboard
       {

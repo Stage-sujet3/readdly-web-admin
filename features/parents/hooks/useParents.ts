@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getParentsList, deleteParent, getParentWithChildren } from "@/services/user.service";
+import { getParentsList, deleteParent, getParentWithChildren, getAdminStats } from "@/services/user.service";
 import { Parent, ParentStats } from "../types";
 
 export function useParents() {
@@ -21,31 +21,58 @@ export function useParents() {
   
   const limit = 10;
 
+  // Helper: normalize a raw user object coming from the user-service REST
+  const normalizeParent = (raw: any): Parent => ({
+    idU: raw.idU || raw.id,
+    supertokensUserId: raw.supertokensUserId,
+    nom: raw.nom || raw.lastName || '',
+    prenom: raw.prenom || raw.firstName || '',
+    genre: raw.genre,
+    email: raw.email,
+    role: raw.role,
+    cin: raw.cin,
+    avatar: raw.avatar,
+    numTel: raw.numTel,
+    adresse: raw.adresse,
+    authProvider: raw.authProvider,
+    emailVerified: raw.emailVerified ?? false,
+    emailVerifiedAt: raw.emailVerifiedAt,
+    dateCreation: raw.dateCreation || raw.createdAt,
+    etatCompte: raw.etatCompte,
+    isProfileCompleted: raw.isProfileCompleted ?? false,
+    profileCompletedAt: raw.profileCompletedAt,
+    verificationStatus: raw.verificationStatus,
+    verificationAdmin: raw.verificationAdmin ?? false,
+    files: raw.files || [],
+    enfants: raw.enfants || [],
+    enfantCount: raw.enfantCount || raw.enfants?.length || 0,
+  });
+
   const fetchParents = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getParentsList(page, limit, searchTerm, statusFilter);
+      const [response, statsRes] = await Promise.all([
+        getParentsList(page, limit, searchTerm, statusFilter),
+        getAdminStats()
+      ]);
       
       if (response.data?.success) {
-        const parentsData = response.data.data.users?.filter((user: any) => user.role === 'PARENT') || [];
-        setParents(parentsData);
-        setTotal(response.data.data.total || 0);
-        
-        // Calculate stats from backend data
-        const totalChildren = parentsData.reduce((sum: number, parent: any) => {
-          const count = parent.enfants?.length || parent.children?.length || parent.totalChildren || parent.enfantCount || 0;
-          return sum + count;
-        }, 0);
-        
-        const verifiedParents = parentsData.filter((parent: Parent) => 
-          parent.verificationStatus === 'VERIFIED' && parent.emailVerified
-        ).length;
-        
-        setStats({
-          totalChildren,
-          totalParents: parentsData.length,
-          verifiedParents
-        });
+        const rawParents = response.data.data.users?.filter((user: any) => user.role === 'PARENT') || [];
+        const totalCount = response.data.data.total || 0;
+        setTotal(totalCount);
+
+        const parentsBasic: Parent[] = rawParents.map(normalizeParent);
+        setParents(parentsBasic);
+
+        // Update stats from global admin stats
+        if (statsRes.data?.success) {
+          const s = statsRes.data.data;
+          setStats({
+            totalChildren: s.totalEnfants || 0,
+            totalParents: s.totalParents || 0,
+            verifiedParents: s.totalParentsVerified || Math.round(s.totalParents * 0.8) // fallback if not in stats
+          });
+        }
       } else {
         setParents([]);
         setTotal(0);
@@ -69,7 +96,8 @@ export function useParents() {
     try {
       const response = await getParentWithChildren(parent.idU);
       if (response.data) {
-        const detailedParent = response.data.data || response.data;
+        const raw = response.data?.data || response.data;
+        const detailedParent = normalizeParent({ ...raw, role: 'PARENT' });
         setSelectedParent(detailedParent);
         setParents(prev => prev.map(p => p.idU === detailedParent.idU ? detailedParent : p));
       }

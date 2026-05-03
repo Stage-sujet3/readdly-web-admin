@@ -46,6 +46,7 @@ export interface Parent {
   verificationAdmin: boolean;
   files?: ParentFile[];
   enfants?: ParentEnfant[];
+  enfantCount?: number;
 }
 
 export interface ParentStats {

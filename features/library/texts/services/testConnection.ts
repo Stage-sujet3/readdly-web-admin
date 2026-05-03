@@ -12,14 +12,14 @@ export const testConnection = async () => {
     
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ Connection successful!', data);
+      console.log(' Connection successful!', data);
       return true;
     } else {
-      console.error('❌ Connection failed:', response.status, response.statusText);
+      console.error(' Connection failed:', response.status, response.statusText);
       return false;
     }
   } catch (error) {
-    console.error('❌ Network error:', error);
+    console.error(' Network error:', error);
     return false;
   }
 };

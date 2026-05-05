@@ -18,11 +18,24 @@ export interface BaseContent {
   updatedAt: Date;
 }
 
-export interface Story extends BaseContent {
-  content: string; // The text content or PDF URL of the story
-  pdfUrl?: string; // Explicit PDF URL if content is used for text
-  author?: string;
+export interface StoryChapter {
+  id: string;
+  title: string;
+  content: string;
+  chapterNumber?: number;
 }
+
+export interface Story extends BaseContent {
+  content: string;      // The text content or concatenated chapters for PDF
+  pdfUrl?: string;      // Explicit PDF URL if content is used for text
+  author?: string;
+  type?: 'TEXT' | 'PDF' | 'IMAGE'; // Story type from backend
+  children?: StoryChapter[];        // Chapter array for PDF stories
+  parentId?: string;                // Set on chapter stories
+  chapterNumber?: number;
+  totalChapters?: number;
+}
+
 
 export interface Dictionary {
   id: string;

@@ -17,6 +17,8 @@ export interface AdminStats {
   }
   monthlyGrowth: { month: string; users: number }[]
   weeklyActivity: { day: string; activities: number }[]
+  verifiedOrthophonistes: number
+  pendingOrthophonistes: number
 }
 
 export function useAdminStats() {
@@ -30,9 +32,9 @@ export function useAdminStats() {
         setLoading(true)
         // Add timeout configuration to prevent timeout errors
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
         
-        const response = await getAdminStats()
+        const response = await getAdminStats(controller.signal)
         clearTimeout(timeoutId)
         
         if (response.data?.success) {

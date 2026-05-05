@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Edit2, Trash2, MoreVertical } from 'lucide-react';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Edit2, Trash2, BookOpen } from 'lucide-react';
 
 interface DictionaryCardProps {
   id: string;
@@ -22,74 +22,42 @@ export function DictionaryCard({
   onDelete, 
   onToggleStatus 
 }: DictionaryCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <motion.div
       whileHover={{ y: -5, scale: 1.02 }}
-      className="relative w-full h-[220px] bg-[#fcfaf5] border border-[#e8dcc5] shadow-[0_4px_10px_rgba(0,0,0,0.03)] rounded-sm flex flex-col p-6 cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => { setIsHovered(false); setMenuOpen(false); }}
+      className="group relative bg-white rounded-3xl p-6 shadow-sm border border-slate-200 hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer flex flex-col h-[220px]"
       onClick={onClick}
     >
-      {/* Decorative top red line reminiscent of dictionary headers */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-[#6b1e1e]" />
-
-      <div className="flex justify-between items-start min-h-0">
-        <h3 className="text-3xl font-extrabold text-[#2a1810] pr-4 line-clamp-1 truncate" style={{ fontFamily: 'Georgia, serif' }}>
-          {title}
-        </h3>
-        
-        {/* Menu Button */}
-        <div className="relative z-20 shrink-0">
-          <button 
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
-            className={`p-2 rounded-full transition-colors ${menuOpen || isHovered ? 'opacity-100 hover:bg-black/5' : 'opacity-0'}`}
-          >
-            <MoreVertical className="w-5 h-5 text-slate-400" />
+      <div className="flex justify-between items-start mb-4">
+        <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
+          <BookOpen className="w-6 h-6 text-amber-600 group-hover:text-white" />
+        </div>
+        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-[-10px] group-hover:translate-y-0">
+          <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-2 bg-white text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl border border-slate-100 transition-all shadow-sm">
+            <Edit2 className="w-4 h-4" />
           </button>
-
-          {/* Quick Actions Menu */}
-          <AnimatePresence>
-            {menuOpen && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-30"
-              >
-                <div className="p-2 space-y-1">
-                  <button onClick={(e) => { e.stopPropagation(); onToggleStatus(); setMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">
-                    <div className={`w-2 h-2 rounded-full ${status === 'published' ? 'bg-amber-500' : 'bg-green-500'}`} />
-                    {status === 'published' ? 'Passer en brouillon' : 'Publier'}
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); onEdit(); setMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-[#6b1e1e] hover:bg-[#6b1e1e]/5 rounded-lg">
-                    <Edit2 className="w-4 h-4" /> Éditer
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); onDelete(); setMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg">
-                    <Trash2 className="w-4 h-4" /> Supprimer
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-2 bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl border border-slate-100 transition-all shadow-sm">
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      <div className="flex-1 mt-4 overflow-hidden">
-         <p className="text-[#3a2010]/80 italic line-clamp-3 leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
-           {definition || 'Aucune définition fournie...'}
-         </p>
+      <div className="flex-1 flex flex-col">
+        <h3 className="text-xl font-black text-slate-800 leading-tight mb-2 line-clamp-1 group-hover:text-amber-600 transition-colors">
+          {title}
+        </h3>
+        <p className="text-sm text-slate-400 italic line-clamp-2 leading-relaxed">
+          {definition || "Collection de vocabulaire thématique..."}
+        </p>
       </div>
 
-      {/* Footer / Status */}
-      <div className="mt-auto pt-4 border-t border-[#e8dcc5]/60 flex justify-between items-center text-xs font-bold tracking-widest text-[#6b1e1e]/50 font-serif uppercase shrink-0">
-        <span>Dict. Entry</span>
-        <span className={`px-2 py-1 rounded-sm text-[10px] ${status === 'published' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-          {status === 'published' ? 'Publié' : 'Brouillon'}
-        </span>
+      <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-50">
+        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Dictionnaire</span>
+        <div 
+          onClick={(e) => { e.stopPropagation(); onToggleStatus(); }}
+          className={`w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm transition-colors cursor-pointer
+            ${status === 'published' ? 'bg-emerald-500' : 'bg-slate-300'}`}
+        />
       </div>
     </motion.div>
   );

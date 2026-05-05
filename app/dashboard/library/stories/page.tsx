@@ -53,15 +53,12 @@ export default function StoriesPage() {
   };
 
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
-  const [selectedTheme, setSelectedTheme] = useState<string>('all');
 
   const filteredStories = stories.filter(s => {
     const matchesSearch = s.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (s.description && s.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesLevel = selectedLevel === 'all' || s.level === selectedLevel;
-    const matchesTheme = selectedTheme === 'all' || s.theme === selectedTheme;
-    
-    return matchesSearch && matchesLevel && matchesTheme;
+    return matchesSearch && matchesLevel;
   });
 
   const frenchStories = filteredStories.filter(s => s.status === 'actif' && s.language === 'Français');
@@ -84,6 +81,15 @@ export default function StoriesPage() {
             />
           </div>
           
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-slate-800">Histoires</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="px-2.5 py-0.5 bg-indigo-50 text-[#5f6ad8] rounded-full text-xs font-bold border border-indigo-100/50">
+                {stories.length} Contenus
+              </span>
+            </div>
+          </div>
+          
           <motion.button
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
@@ -96,47 +102,48 @@ export default function StoriesPage() {
         </div>
 
         {/* ── DYNAMIC CLASSIFICATION FILTERS ── */}
-        <div className="flex flex-wrap items-center gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-          <div className="flex items-center gap-2 text-slate-400 mr-2">
-            <Filter className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-wider">Classer par:</span>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-6 bg-white/40 backdrop-blur-sm rounded-[2rem] border border-slate-200/60 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center gap-3 text-slate-500 min-w-max">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Filter className="w-4 h-4 text-indigo-600" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Filtrer par niveau</span>
           </div>
 
-          <select 
-            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none focus:border-[#5f6ad8] transition-all cursor-pointer shadow-sm"
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-          >
-            <option value="all">Tous les niveaux</option>
-            <option value="Facile">Facile</option>
-            <option value="Moyen">Moyen</option>
-            <option value="Difficile">Difficile</option>
-          </select>
+          <div className="flex flex-wrap gap-2">
+            {['all', 'Facile', 'Moyen', 'Difficile'].map((level) => (
+              <button
+                key={level}
+                onClick={() => setSelectedLevel(level)}
+                className={`relative px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                  selectedLevel === level 
+                    ? 'text-white' 
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {selectedLevel === level && (
+                  <motion.div 
+                    layoutId="activeLevelStory"
+                    className="absolute inset-0 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {level === 'all' ? 'Tous' : level}
+                </span>
+              </button>
+            ))}
+          </div>
 
-          <select 
-            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none focus:border-[#5f6ad8] transition-all cursor-pointer shadow-sm"
-            value={selectedTheme}
-            onChange={(e) => setSelectedTheme(e.target.value)}
-          >
-            <option value="all">Tous les thèmes</option>
-            <option value="Animaux">Animaux</option>
-            <option value="École">École</option>
-            <option value="Émotions">Émotions</option>
-            <option value="Famille">Famille</option>
-            <option value="Nature">Nature</option>
-            <option value="Aventure">Aventure</option>
-            <option value="Science">Science</option>
-            <option value="Histoire">Histoire</option>
-            <option value="Autre">Autre</option>
-          </select>
-
-          {(selectedLevel !== 'all' || selectedTheme !== 'all') && (
-            <button 
-              onClick={() => { setSelectedLevel('all'); setSelectedTheme('all'); }}
-              className="text-xs font-bold text-[#5f6ad8] hover:underline px-2"
+          {selectedLevel !== 'all' && (
+            <motion.button 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => setSelectedLevel('all')}
+              className="text-[10px] font-black text-indigo-500 hover:text-indigo-700 uppercase tracking-widest bg-indigo-50 px-4 py-2.5 rounded-xl transition-all"
             >
               Réinitialiser
-            </button>
+            </motion.button>
           )}
         </div>
       </div>

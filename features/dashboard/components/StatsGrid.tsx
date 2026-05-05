@@ -4,6 +4,29 @@ import { useState, useEffect } from "react"
 import { Users, UserPlus, Activity, ShieldCheck, TrendingUp, Users2, Stethoscope, Baby } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAdminStats } from "@/hooks/useAdminStats"
+import { Skeleton } from "@/components/ui/Skeleton"
+
+export function StatsGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {[...Array(4)].map((_, index) => (
+        <div key={index} className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/60 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <Skeleton className="w-12 h-12 rounded-2xl" />
+            <Skeleton className="w-16 h-5" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="w-20 h-8" />
+            <Skeleton className="w-32 h-4" />
+          </div>
+          <div className="mt-5">
+            <Skeleton className="w-full h-2 rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 // Simplified count-up component
 function CountUp({ value }: { value: number | string }) {
@@ -24,7 +47,11 @@ function CountUp({ value }: { value: number | string }) {
 }
 
 export function StatsGrid() {
-  const { statsData } = useAdminStats();
+  const { statsData, loading } = useAdminStats();
+
+  if (loading) {
+    return <StatsGridSkeleton />;
+  }
 
   const stats = [
     {

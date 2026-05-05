@@ -8,7 +8,7 @@ export const getUserWithChildren = (id: string) => api.get(`/users/${id}?include
 // Calls user-service REST directly (port 3001) — returns full user with enfants[]
 export const getParentWithChildren = (id: string) => userServiceApi.get(`/users/${id}`)
 
-export const getAdminStats = () => api.get("/admin/stats")
+export const getAdminStats = (signal?: AbortSignal) => api.get("/admin/stats", { signal })
 
 export const getUsersList = (page = 1, limit = 10, searchTerm = '', statusFilter = '', roleFilter = '') => 
   api.get(`/admin/users?page=${page}&limit=${limit}&search=${searchTerm}&status=${statusFilter}&role=${roleFilter}`)

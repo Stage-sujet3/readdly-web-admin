@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, BookOpen, Trash2, Edit3, Eye, Loader2, Book as BookIcon, Languages, Archive, PlusCircle } from 'lucide-react';
+import { Plus, Search, BookOpen, Trash2, Edit3, Eye, Loader2, Book as BookIcon, Languages, Archive, PlusCircle, Filter } from 'lucide-react';
 import { DictionaryFormModal, DictionaryViewModal } from '@/features/library/dictionary/components/DictionaryModals';
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal';
 import { useDictionary } from '@/features/library/dictionary/hooks/useDictionary';
@@ -28,6 +28,7 @@ export default function DictionaryPage() {
   // Delete Modal state
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, title: string } | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   const handleSaveDictionary = async (data: any) => {
     try {
@@ -58,9 +59,11 @@ export default function DictionaryPage() {
     setIsDeleteOpen(true);
   };
 
-  const filteredDicts = (dictionaries ?? []).filter(d => 
-    d.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredDicts = (dictionaries ?? []).filter(d => {
+    const matchesSearch = d.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = selectedStatus === 'all' || d.status === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
 
   const isLang = (dict: Dictionary, lang: string) => {
     const l = dict.language.toLowerCase();
@@ -100,6 +103,14 @@ export default function DictionaryPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-slate-800">Dictionnaire</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="px-2.5 py-0.5 bg-indigo-50 text-[#5f6ad8] rounded-full text-xs font-bold border border-indigo-100/50">
+                {dictionaries.length} Dictionnaires
+              </span>
+            </div>
+          </div>
           
           <motion.button
             whileHover={{ scale: 1.02, y: -2 }}
@@ -110,6 +121,52 @@ export default function DictionaryPage() {
             <Plus className="w-5 h-5" />
             Nouveau Dictionnaire
           </motion.button>
+        </div>
+
+        {/* ── DYNAMIC CLASSIFICATION FILTERS ── */}
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-6 bg-white/40 backdrop-blur-sm rounded-[2rem] border border-slate-200/60 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center gap-3 text-slate-500 min-w-max">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Filter className="w-4 h-4 text-indigo-600" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Filtrer par statut</span>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {['all', 'actif', 'brouillon'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status)}
+                className={`relative px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                  selectedStatus === status 
+                    ? 'text-white' 
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {selectedStatus === status && (
+                  <motion.div 
+                    layoutId="activeStatusDict"
+                    className="absolute inset-0 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {status === 'all' ? 'Tous' : status}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {selectedStatus !== 'all' && (
+            <motion.button 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => setSelectedStatus('all')}
+              className="text-[10px] font-black text-indigo-500 hover:text-indigo-700 uppercase tracking-widest bg-indigo-50 px-4 py-2.5 rounded-xl transition-all"
+            >
+              Réinitialiser
+            </motion.button>
+          )}
         </div>
       </div>
 

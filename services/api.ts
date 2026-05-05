@@ -6,7 +6,7 @@ export const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
     // Required for SuperTokens session cookies
     withCredentials: true, // Doit être true pour les cookies session
-    timeout: 20000,
+    timeout: 30000,
 })
 
 // Set rid header dynamically for different SuperTokens recipes

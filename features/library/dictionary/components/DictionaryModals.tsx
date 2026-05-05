@@ -16,8 +16,6 @@ export function DictionaryFormModal({ isOpen, onClose, onSave, initialData }: Di
   const [language, setLanguage] = useState<Language>(initialData?.language || 'Français');
   const [theme, setTheme] = useState(initialData?.theme || 'Général');
   const [status, setStatus] = useState<ContentStatus>(initialData?.status || 'brouillon');
-  
-  // Dynamic list of words
   const [words, setWords] = useState<Partial<DictionaryWord>[]>(initialData?.words || []);
 
   useEffect(() => {
@@ -60,192 +58,124 @@ export function DictionaryFormModal({ isOpen, onClose, onSave, initialData }: Di
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:pl-[340px]">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-        />
-        <motion.div
-          initial={{ scale: 1.05, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 1.05, opacity: 0, y: 20 }}
-          className="relative w-full max-w-4xl max-h-[90vh] bg-slate-50 flex flex-col rounded-2xl shadow-2xl overflow-hidden z-10 border border-slate-200"
+           initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
+           className="relative w-full max-w-5xl h-[90vh] bg-white rounded-[2.5rem] shadow-2xl flex flex-col border border-slate-200 z-10 overflow-hidden"
         >
-          <div className="bg-gradient-to-r from-[#5f6ad8] to-[#444fc0] px-6 py-4 flex justify-between items-center shadow-md z-10 shrink-0">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
-              {initialData ? 'Modifier le Dictionnaire' : 'Nouveau Dictionnaire (Ajout Multiple)'}
-            </h2>
-            <button type="button" onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors text-white">
-              <X className="w-5 h-5" />
+          {/* Header */}
+          <div className="px-10 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-200">
+                <BookOpen className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+                  {initialData ? 'Modifier le Dictionnaire' : 'Nouveau Dictionnaire'}
+                </h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base de données lexicale</p>
+              </div>
+            </div>
+            <button type="button" onClick={onClose} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-full transition-all text-slate-400">
+              <X className="w-6 h-6" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-              
-              {/* === META SECTION === */}
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-5">
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Informations Générales</h3>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">Titre du Dictionnaire</label>
-                  <input
-                    type="text"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#5f6ad8] focus:ring-4 focus:ring-[#5f6ad8]/10 transition-all font-bold text-slate-800"
-                    placeholder="Ex: Vocabulaire des animaux de la savane..."
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Langue</label>
-                    <div className="relative">
-                      <Languages className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                      <select
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[#5f6ad8] transition-all appearance-none font-bold text-slate-700"
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value as Language)}
-                      >
-                        <option value="Français">Français</option>
-                        <option value="Anglais">Anglais</option>
-                        <option value="Arabe">Arabe</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Thème Global</label>
-                    <div className="relative">
-                      <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                      <input
-                        type="text"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[#5f6ad8] transition-all font-bold text-slate-700"
-                        placeholder="Ex: Animaux"
-                        value={theme}
-                        onChange={(e) => setTheme(e.target.value)}
+          <form className="flex-1 flex flex-col min-h-0" onSubmit={handleSubmit}>
+            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+              <div className="space-y-10">
+                {/* Meta Information Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Titre du dictionnaire</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Vocabulaire de la Nature..." 
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-slate-800 font-bold transition-all" 
+                        value={title} 
+                        onChange={(e) => setTitle(e.target.value)} 
+                        required 
                       />
                     </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Langue</label>
+                        <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-amber-500 text-slate-700 font-bold text-sm cursor-pointer appearance-none" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
+                          <option value="Français">Français</option><option value="Anglais">Anglais</option><option value="Arabe">Arabe</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Thème Global</label>
+                        <input type="text" placeholder="Ex: Animaux" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-amber-500 text-slate-700 font-bold text-sm" value={theme} onChange={(e) => setTheme(e.target.value)} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Statut</label>
-                    <select
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-[#5f6ad8] transition-all appearance-none font-bold text-slate-700"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value as ContentStatus)}
-                    >
-                      <option value="brouillon">Brouillon</option>
-                      <option value="actif">Actif (Publié)</option>
-                      <option value="inactif">Inactif (Archivé)</option>
-                    </select>
+
+                  <div className="bg-amber-50/50 rounded-3xl p-6 border border-amber-100 flex flex-col justify-center">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em]">Mode Ajout Multiple</span>
+                    </div>
+                    <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                      Ce dictionnaire regroupera un ensemble de mots partageant le même thème et la même langue pour un apprentissage cohérent.
+                    </p>
                   </div>
                 </div>
-              </div>
 
-              {/* === WORDS SECTION === */}
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Mots à ajouter ({words.length})</h3>
-                  <button
-                    type="button"
-                    onClick={handleAddWordRow}
-                    className="flex items-center gap-2 text-xs font-bold bg-[#5f6ad8]/10 text-[#5f6ad8] px-3 py-1.5 rounded-lg hover:bg-[#5f6ad8]/20 transition-colors uppercase tracking-widest"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Nouvelle Ligne
-                  </button>
-                </div>
-
-                {words.length === 0 ? (
-                  <div className="py-10 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                    <p className="text-sm text-slate-400 font-medium mb-3">Aucun mot n'a encore été ajouté.</p>
-                    <button
-                      type="button"
-                      onClick={handleAddWordRow}
-                      className="px-6 py-2 bg-indigo-100 text-indigo-700 font-bold rounded-lg hover:bg-indigo-200 transition-colors text-xs uppercase tracking-widest"
-                    >
-                      Ajouter le premier mot
+                {/* Words Section */}
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center px-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Liste des Mots ({words.length})</h3>
+                      <div className="h-px w-20 bg-slate-100" />
+                    </div>
+                    <button type="button" onClick={handleAddWordRow} className="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                      <Plus className="w-4 h-4" /> Ajouter une ligne
                     </button>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {words.map((word, index) => (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                        key={index}
-                        className="flex flex-col md:flex-row gap-3 items-start md:items-center bg-slate-50 p-3 rounded-xl border border-slate-200"
-                      >
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-400">
-                          {index + 1}
-                        </span>
-                        
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 w-full">
-                          <input
-                            type="text"
-                            placeholder="Mot/Expression *"
-                            className="bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#5f6ad8] font-bold text-sm text-slate-800"
-                            value={word.word}
-                            onChange={(e) => handleUpdateWord(index, 'word', e.target.value)}
-                            required
-                          />
-                          <input
-                            type="text"
-                            placeholder="Définition (optionnel)"
-                            className="bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#5f6ad8] text-sm text-slate-600"
-                            value={word.definition || ''}
-                            onChange={(e) => handleUpdateWord(index, 'definition', e.target.value)}
-                          />
-                          <select
-                            className="bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#5f6ad8] text-sm font-medium text-slate-700 appearance-none"
-                            value={word.level}
-                            onChange={(e) => handleUpdateWord(index, 'level', e.target.value)}
-                          >
-                            <option value="Facile">Facile</option>
-                            <option value="Moyen">Moyen</option>
-                            <option value="Difficile">Difficile</option>
-                          </select>
-                          <input
-                            type="text"
-                            placeholder="Thème (Défaut: Global)"
-                            className="bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#5f6ad8] text-sm text-slate-600"
-                            value={word.theme || ''}
-                            onChange={(e) => handleUpdateWord(index, 'theme', e.target.value)}
-                          />
-                        </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveWord(index)}
-                          className="flex-shrink-0 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-auto md:ml-0"
-                          title="Supprimer la ligne"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </motion.div>
-                    ))}
+                  <div className="space-y-3">
+                    {words.length === 0 ? (
+                      <div className="py-12 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30">
+                        <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm mb-4">
+                          <Plus className="w-6 h-6 text-slate-200" />
+                        </div>
+                        <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Commencez par ajouter un mot</p>
+                      </div>
+                    ) : (
+                      words.map((word, index) => (
+                        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={index} className="group flex gap-4 items-center bg-white border border-slate-100 p-4 rounded-[1.5rem] hover:shadow-lg hover:shadow-slate-200/50 transition-all">
+                          <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 grid grid-cols-4 gap-4">
+                            <input type="text" placeholder="Mot *" className="bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 font-bold text-sm" value={word.word} onChange={(e) => handleUpdateWord(index, 'word', e.target.value)} required />
+                            <input type="text" placeholder="Définition" className="bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 text-sm font-medium" value={word.definition || ''} onChange={(e) => handleUpdateWord(index, 'definition', e.target.value)} />
+                            <select className="bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 text-sm font-bold appearance-none cursor-pointer" value={word.level} onChange={(e) => handleUpdateWord(index, 'level', e.target.value as Level)}>
+                              <option value="Facile">Facile</option><option value="Moyen">Moyen</option><option value="Difficile">Difficile</option>
+                            </select>
+                            <input type="text" placeholder="Exemple" className="bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 text-sm italic" value={word.example || ''} onChange={(e) => handleUpdateWord(index, 'theme', e.target.value)} />
+                          </div>
+                          <button type="button" onClick={() => handleRemoveWord(index)} className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </motion.div>
+                      ))
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
-            {/* ACTION BAR */}
-            <div className="bg-white border-t border-slate-200 p-4 px-6 flex justify-end gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors uppercase tracking-widest text-xs"
-              >
-                Annuler
-              </button>
-              <button
-                type="submit"
-                className="px-8 py-2.5 bg-gradient-to-r from-[#5f6ad8] to-[#444fc0] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
-              >
-                <Check className="w-4 h-4 text-white" />
-                {initialData ? 'Enregistrer les modifications' : `Créer avec ${words.length} mots`}
+            {/* Footer */}
+            <div className="px-10 py-6 border-t border-slate-100 flex justify-end items-center gap-4 bg-slate-50/30">
+              <button type="button" onClick={onClose} className="px-8 py-4 text-slate-400 font-black uppercase tracking-widest text-xs hover:text-slate-600 transition-colors">Annuler</button>
+              <button type="submit" className="px-10 py-4 bg-slate-800 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-slate-200 hover:bg-slate-900 transition-all flex items-center gap-3">
+                <Check className="w-5 h-5" />
+                {initialData ? 'Enregistrer' : `Créer le dictionnaire`}
               </button>
             </div>
           </form>
@@ -304,7 +234,7 @@ export function DictionaryViewModal({ isOpen, onClose, dictionary, onAddWord, on
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
+      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-8 md:pl-[340px]">
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
@@ -361,51 +291,51 @@ export function DictionaryViewModal({ isOpen, onClose, dictionary, onAddWord, on
             {/* Words List */}
             <div className="flex-1 overflow-y-auto pr-4 -mr-4 custom-scrollbar">
               {filteredWords.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {filteredWords.map((word, index) => (
                     <motion.div
                       key={word.id || `word-${index}`}
-                      initial={{ opacity: 0, y: 5 }}
+                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="group relative bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-xl hover:border-indigo-200 transition-all flex flex-col"
+                      className="group relative bg-white border border-slate-100 rounded-[2rem] p-7 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-500/20 transition-all flex flex-col"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-xl font-bold text-slate-800">{word.word}</h3>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => handleEditWord(word)}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteClick(word.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="space-y-1">
+                          <h3 className="text-2xl font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors">{word.word}</h3>
+                          <div className="flex items-center gap-2">
+                             <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                               word.level === 'Facile' ? 'bg-emerald-50 text-emerald-600' :
+                               word.level === 'Moyen' ? 'bg-amber-50 text-amber-600' :
+                               'bg-red-50 text-red-600'
+                             }`}>
+                               {word.level}
+                             </span>
+                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-md">
+                               {word.theme}
+                             </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                          <button onClick={() => handleEditWord(word)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDeleteClick(word.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </div>
                       
-                      {word.definition ? (
-                        <p className="text-slate-600 text-sm italic line-clamp-2 mb-3 leading-relaxed">
-                          "{word.definition}"
-                        </p>
-                      ) : (
-                        <p className="text-slate-300 text-sm italic mb-3">Pas de définition</p>
-                      )}
-
-                      <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-50">
-                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
-                          word.level === 'Facile' ? 'bg-emerald-50 text-emerald-600' :
-                          word.level === 'Moyen' ? 'bg-amber-50 text-amber-600' :
-                          'bg-red-50 text-red-600'
-                        }`}>
-                          {word.level}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-0.5 rounded-md uppercase tracking-tighter">
-                          {word.theme}
-                        </span>
+                      <div className="space-y-4">
+                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/50">
+                          <p className="text-slate-600 font-bold text-sm leading-relaxed">
+                            {word.definition || <span className="text-slate-300 italic font-medium">Pas de définition</span>}
+                          </p>
+                        </div>
+                        
+                        {word.example && (
+                          <div className="flex gap-3 items-start px-2">
+                            <span className="text-indigo-400 font-serif text-2xl leading-none">“</span>
+                            <p className="text-slate-400 italic text-xs leading-relaxed font-medium">
+                              {word.example}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   ))}
@@ -491,101 +421,78 @@ function WordFormModal({ isOpen, onClose, onSave, initialData, dictionaryLanguag
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+      <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 md:pl-[340px]">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
         <motion.div
-          initial={{ scale: 1.1, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.1, opacity: 0 }}
-          className="relative w-full max-w-xl bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.4)] overflow-hidden z-10 border border-slate-200"
+           initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
+           className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl flex flex-col border border-slate-200 z-10 overflow-hidden"
         >
-          <div className="bg-slate-50 px-6 py-4 flex justify-between items-center border-b border-slate-200">
-            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <Edit3 className="w-4 h-4 text-indigo-600" />
-              {initialData ? 'Modifier le Mot' : 'Ajouter un Mot'}
-            </h2>
-            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
-              <X className="w-4 h-4" />
+          {/* Header */}
+          <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200">
+                <Edit3 className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-black text-slate-800 tracking-tight">
+                {initialData ? 'Modifier le Mot' : 'Nouveau Mot'}
+              </h2>
+            </div>
+            <button type="button" onClick={onClose} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-full transition-all text-slate-400">
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            <div>
-              <label className="block text-xs font-black text-slate-500 mb-1.5 uppercase tracking-widest">Le Mot</label>
-              <input
-                type="text"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold text-slate-900 text-xl"
-                placeholder="Entrez le mot..."
-                value={word}
-                onChange={(e) => setWord(e.target.value)}
-                required
+          <form className="p-8 space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Le Mot</label>
+              <input 
+                type="text" 
+                placeholder="Ex: Éléphant..." 
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-slate-800 font-bold transition-all text-2xl" 
+                value={word} 
+                onChange={(e) => setWord(e.target.value)} 
+                required 
                 autoFocus
               />
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-black text-slate-500 mb-1.5 uppercase tracking-widest flex items-center gap-2">
-                  Définition <span className="text-[10px] font-medium text-slate-400 capitalize">(Optionnel)</span>
-                </label>
-                <textarea
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 transition-all font-medium text-slate-700 min-h-[100px] resize-none"
-                  placeholder="Décrivez le sens du mot..."
-                  value={definition}
-                  onChange={(e) => setDefinition(e.target.value)}
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Définition</label>
+              <textarea 
+                placeholder="Sens du mot..." 
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-indigo-500 text-slate-700 font-medium resize-none h-24" 
+                value={definition} 
+                onChange={(e) => setDefinition(e.target.value)} 
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs font-black text-slate-500 mb-1.5 uppercase tracking-widest flex items-center gap-2">
-                  Exemple <span className="text-[10px] font-medium text-slate-400 capitalize">(Optionnel)</span>
-                </label>
-                <textarea
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 transition-all font-medium text-slate-700 min-h-[80px] resize-none"
-                  placeholder="Utilisez le mot dans une phrase..."
-                  value={example}
-                  onChange={(e) => setExample(e.target.value)}
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Exemple d'utilisation</label>
+              <textarea 
+                placeholder="Une phrase d'exemple..." 
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-indigo-500 text-slate-700 font-medium italic resize-none h-20" 
+                value={example} 
+                onChange={(e) => setExample(e.target.value)} 
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-black text-slate-500 mb-1.5 uppercase tracking-widest">Niveau</label>
-                <select
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 transition-all font-bold text-slate-700 appearance-none"
-                  value={level}
-                  onChange={(e) => setLevel(e.target.value as Level)}
-                >
-                  <option value="Facile">Facile</option>
-                  <option value="Moyen">Moyen</option>
-                  <option value="Difficile">Difficile</option>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Niveau</label>
+                <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm appearance-none cursor-pointer" value={level} onChange={(e) => setLevel(e.target.value as Level)}>
+                  <option value="Facile">Facile</option><option value="Moyen">Moyen</option><option value="Difficile">Difficile</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-black text-slate-500 mb-1.5 uppercase tracking-widest">Thème</label>
-                <input
-                  type="text"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 transition-all font-bold text-slate-700"
-                  placeholder="Ex: Animaux"
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value)}
-                />
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Thème</label>
+                <input type="text" placeholder="Thème" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm" value={theme} onChange={(e) => setTheme(e.target.value)} />
               </div>
             </div>
 
-            <div className="pt-4 flex gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-6 py-3 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors uppercase tracking-widest text-[10px]"
-              >
-                Ignorer
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-[10px]"
-              >
-                <Check className="w-4 h-4" />
-                Confirmer
+            <div className="pt-4 flex gap-4">
+              <button type="button" onClick={onClose} className="flex-1 py-4 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:text-slate-600 transition-colors">Annuler</button>
+              <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
+                <Check className="w-4 h-4" /> Confirmer
               </button>
             </div>
           </form>

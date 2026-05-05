@@ -8,11 +8,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { 
   LayoutDashboard, 
   Users, 
-  Shield, 
   Library, 
   MessageSquare, 
-  BarChart3, 
-  Settings,
   User as UserIcon,
   LogOut,
   ChevronDown,
@@ -21,8 +18,7 @@ import {
   X,
   BookOpen,
   BookA,
-  FileText,
-  ImagePlay
+  FileText
 } from "lucide-react"
 import { useSidebar } from "@/contexts/SidebarContext"
 import { useAdminStats } from "@/hooks/useAdminStats"
@@ -70,12 +66,6 @@ export function Sidebar() {
       ]
     },
     { 
-      path: "/dashboard/roles", 
-      label: "Rôles", 
-      icon: Shield,
-      count: 0
-    },
-    { 
       path: "/dashboard/library", 
       label: "Bibliothèque", 
       icon: Library,
@@ -91,18 +81,6 @@ export function Sidebar() {
       path: "/dashboard/messages", 
       label: "Messages", 
       icon: MessageSquare,
-      count: 0
-    },
-    { 
-      path: "/dashboard/statistics", 
-      label: "Stats", 
-      icon: BarChart3,
-      count: 0
-    },
-    { 
-      path: "/dashboard/settings", 
-      label: "Paramètres", 
-      icon: Settings,
       count: 0
     },
   ]

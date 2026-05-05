@@ -24,7 +24,6 @@ export default function TextsPage() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string, title: string } | null>(null);
 
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
-  const [selectedTheme, setSelectedTheme] = useState<string>('all');
 
   const handleSave = async (data: any) => {
     try {
@@ -60,9 +59,8 @@ export default function TextsPage() {
     const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (t.content && t.content.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesLevel = selectedLevel === 'all' || t.level === selectedLevel;
-    const matchesTheme = selectedTheme === 'all' || t.theme === selectedTheme;
     
-    return matchesSearch && matchesLevel && matchesTheme;
+    return matchesSearch && matchesLevel;
   });
 
   const isLang = (text: EducationalText, lang: string) => {
@@ -93,6 +91,15 @@ export default function TextsPage() {
             />
           </div>
           
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-slate-800">Textes</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="px-2.5 py-0.5 bg-indigo-50 text-[#5f6ad8] rounded-full text-xs font-bold border border-indigo-100/50">
+                {texts.length} Textes
+              </span>
+            </div>
+          </div>
+          
           <motion.button
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
@@ -105,47 +112,48 @@ export default function TextsPage() {
         </div>
 
         {/* ── DYNAMIC CLASSIFICATION FILTERS ── */}
-        <div className="flex flex-wrap items-center gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-          <div className="flex items-center gap-2 text-slate-400 mr-2">
-            <Filter className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-wider">Filtrer par:</span>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-6 bg-white/40 backdrop-blur-sm rounded-[2rem] border border-slate-200/60 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center gap-3 text-slate-500 min-w-max">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Filter className="w-4 h-4 text-indigo-600" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Filtrer par niveau</span>
           </div>
 
-          <select 
-            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none focus:border-[#5f6ad8] transition-all cursor-pointer shadow-sm"
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-          >
-            <option value="all">Tous les niveaux</option>
-            <option value="Facile">Facile</option>
-            <option value="Moyen">Moyen</option>
-            <option value="Difficile">Difficile</option>
-          </select>
+          <div className="flex flex-wrap gap-2">
+            {['all', 'Facile', 'Moyen', 'Difficile'].map((level) => (
+              <button
+                key={level}
+                onClick={() => setSelectedLevel(level)}
+                className={`relative px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                  selectedLevel === level 
+                    ? 'text-white' 
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {selectedLevel === level && (
+                  <motion.div 
+                    layoutId="activeLevelText"
+                    className="absolute inset-0 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {level === 'all' ? 'Tous' : level}
+                </span>
+              </button>
+            ))}
+          </div>
 
-          <select 
-            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none focus:border-[#5f6ad8] transition-all cursor-pointer shadow-sm"
-            value={selectedTheme}
-            onChange={(e) => setSelectedTheme(e.target.value)}
-          >
-            <option value="all">Tous les thèmes</option>
-            <option value="Animaux">Animaux</option>
-            <option value="École">École</option>
-            <option value="Émotions">Émotions</option>
-            <option value="Famille">Famille</option>
-            <option value="Nature">Nature</option>
-            <option value="Aventure">Aventure</option>
-            <option value="Science">Science</option>
-            <option value="Histoire">Histoire</option>
-            <option value="Autre">Autre</option>
-          </select>
-
-          {(selectedLevel !== 'all' || selectedTheme !== 'all') && (
-            <button 
-              onClick={() => { setSelectedLevel('all'); setSelectedTheme('all'); }}
-              className="text-xs font-bold text-[#5f6ad8] hover:underline px-2"
+          {selectedLevel !== 'all' && (
+            <motion.button 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => setSelectedLevel('all')}
+              className="text-[10px] font-black text-indigo-500 hover:text-indigo-700 uppercase tracking-widest bg-indigo-50 px-4 py-2.5 rounded-xl transition-all"
             >
               Réinitialiser
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
@@ -156,108 +164,126 @@ export default function TextsPage() {
           <p className="font-medium animate-pulse text-lg italic text-indigo-600/40">Ouverture de la bibliothèque...</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-16">
-          {/* FRENCH SHELF */}
-          <Bookshelf title="Textes en Français" theme="library">
-            {frenchTexts.length > 0 ? (
-              frenchTexts.map((text: EducationalText) => (
-                <TextCard
-                  key={text.id}
-                  id={text.id}
-                  title={text.title}
-                  status={text.status}
-                  level={text.level}
-                  theme={text.theme}
-                  onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
-                  onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
-                  onDelete={() => handleDeleteClick(text.id, text.title)}
-                  onToggleStatus={() => toggleStatus(text)}
-                />
-              ))
-            ) : (
-              <div className="py-10 text-center text-slate-400 text-sm italic w-full">Aucun texte en français</div>
-            )}
-          </Bookshelf>
+        <div className="space-y-16">
+          {/* FRENCH SECTION */}
+          <section>
+            <div className="flex items-center gap-3 mb-6 px-2">
+              <div className="w-1.5 h-8 bg-indigo-600 rounded-full" />
+              <h2 className="text-xl font-black text-slate-800 tracking-tight">Textes en Français</h2>
+              <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-400 text-[10px] font-black rounded-md">{frenchTexts.length}</span>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {frenchTexts.length > 0 ? (
+                frenchTexts.map((text: EducationalText) => (
+                  <TextCard
+                    key={text.id}
+                    id={text.id}
+                    title={text.title}
+                    status={text.status}
+                    level={text.level}
+                    theme={text.theme}
+                    onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
+                    onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
+                    onDelete={() => handleDeleteClick(text.id, text.title)}
+                    onToggleStatus={() => toggleStatus(text)}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">Aucun texte en français</div>
+              )}
+            </div>
+          </section>
 
-          {/* ENGLISH SHELF */}
-          <Bookshelf title="English Educational Texts" theme="library">
-            {englishTexts.length > 0 ? (
-              englishTexts.map((text: EducationalText) => (
-                <TextCard
-                  key={text.id}
-                  id={text.id}
-                  title={text.title}
-                  status={text.status}
-                  level={text.level}
-                  theme={text.theme}
-                  onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
-                  onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
-                  onDelete={() => handleDeleteClick(text.id, text.title)}
-                  onToggleStatus={() => toggleStatus(text)}
-                />
-              ))
-            ) : (
-              <div className="py-10 text-center text-slate-400 text-sm italic w-full">No English texts</div>
-            )}
-          </Bookshelf>
+          {/* ENGLISH SECTION */}
+          <section>
+            <div className="flex items-center gap-3 mb-6 px-2">
+              <div className="w-1.5 h-8 bg-amber-500 rounded-full" />
+              <h2 className="text-xl font-black text-slate-800 tracking-tight">English Educational Texts</h2>
+              <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-400 text-[10px] font-black rounded-md">{englishTexts.length}</span>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {englishTexts.length > 0 ? (
+                englishTexts.map((text: EducationalText) => (
+                  <TextCard
+                    key={text.id}
+                    id={text.id}
+                    title={text.title}
+                    status={text.status}
+                    level={text.level}
+                    theme={text.theme}
+                    onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
+                    onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
+                    onDelete={() => handleDeleteClick(text.id, text.title)}
+                    onToggleStatus={() => toggleStatus(text)}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">No English texts</div>
+              )}
+            </div>
+          </section>
 
-          {/* ARABIC SHELF */}
-          <Bookshelf title="نصوص تعليمية بالعربية" theme="library">
-            {arabicTexts.length > 0 ? (
-              arabicTexts.map((text: EducationalText) => (
-                <TextCard
-                  key={text.id}
-                  id={text.id}
-                  title={text.title}
-                  status={text.status}
-                  level={text.level}
-                  theme={text.theme}
-                  onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
-                  onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
-                  onDelete={() => handleDeleteClick(text.id, text.title)}
-                  onToggleStatus={() => toggleStatus(text)}
-                />
-              ))
-            ) : (
-              <div className="py-10 text-center text-slate-400 text-sm italic w-full">لا توجد نصوص باللغة العربية</div>
-            )}
-          </Bookshelf>
+          {/* ARABIC SECTION */}
+          <section>
+            <div className="flex items-center gap-3 mb-6 px-2">
+              <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
+              <h2 className="text-xl font-black text-slate-800 tracking-tight">نصوص تعليمية بالعربية</h2>
+              <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-400 text-[10px] font-black rounded-md">{arabicTexts.length}</span>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {arabicTexts.length > 0 ? (
+                arabicTexts.map((text: EducationalText) => (
+                  <TextCard
+                    key={text.id}
+                    id={text.id}
+                    title={text.title}
+                    status={text.status}
+                    level={text.level}
+                    theme={text.theme}
+                    onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
+                    onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
+                    onDelete={() => handleDeleteClick(text.id, text.title)}
+                    onToggleStatus={() => toggleStatus(text)}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">لا توجد نصوص باللغة العربية</div>
+              )}
+            </div>
+          </section>
 
-          {/* DRAFTS & ARCHIVES */}
-          <Bookshelf title="Archives & Brouillons" theme="glass">
-            {inactiveTexts.length > 0 ? (
-              inactiveTexts.map((text: EducationalText) => (
-                <TextCard
-                  key={text.id}
-                  id={text.id}
-                  title={text.title}
-                  status={text.status}
-                  level={text.level}
-                  theme={text.theme}
-                  onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
-                  onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
-                  onDelete={() => handleDeleteClick(text.id, text.title)}
-                  onToggleStatus={() => toggleStatus(text)}
-                />
-              ))
-            ) : (
-              <div className="py-10 text-center text-slate-400 text-sm italic w-full">Aucun brouillon ni archive</div>
-            )}
-          </Bookshelf>
+          {/* ARCHIVES SECTION */}
+          {inactiveTexts.length > 0 && (
+            <section>
+              <div className="flex items-center gap-3 mb-6 px-2">
+                <div className="w-1.5 h-8 bg-slate-400 rounded-full" />
+                <h2 className="text-xl font-black text-slate-800 tracking-tight">Archives & Brouillons</h2>
+                <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-400 text-[10px] font-black rounded-md">{inactiveTexts.length}</span>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {inactiveTexts.map((text: EducationalText) => (
+                  <TextCard
+                    key={text.id}
+                    id={text.id}
+                    title={text.title}
+                    status={text.status}
+                    level={text.level}
+                    theme={text.theme}
+                    onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
+                    onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
+                    onDelete={() => handleDeleteClick(text.id, text.title)}
+                    onToggleStatus={() => toggleStatus(text)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
           
           {filteredTexts.length === 0 && texts.length > 0 && (
             <div className="text-center py-32 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200">
                <BookOpen className="w-16 h-16 text-slate-200 mx-auto mb-4" />
                <h3 className="text-xl font-bold text-slate-400 uppercase tracking-widest">Aucun résultat</h3>
                <p className="text-slate-300 font-medium">Ajustez votre recherche ou vos filtres.</p>
-            </div>
-          )}
-          
-          {!loading && (texts || []).length === 0 && (
-            <div className="text-center py-32 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-              <BookOpen className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-slate-400 uppercase tracking-widest">Aucun texte éducatif</h3>
-              <p className="text-slate-300 font-medium">Commencez par créer votre premier texte éducatif.</p>
             </div>
           )}
         </div>

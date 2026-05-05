@@ -26,7 +26,8 @@ export default function OrthophonistesPage() {
     setStatusFilter,
     loadUserDetails,
     handleDeleteOrthophoniste,
-    getStatusDisplay
+    getStatusDisplay,
+    isLoading
   } = useOrthophonistes();
 
   return (
@@ -49,6 +50,7 @@ export default function OrthophonistesPage() {
         loadUserDetails={loadUserDetails}
         setOrthophonisteToDelete={setOrthophonisteToDelete}
         getStatusDisplay={getStatusDisplay}
+        isLoading={isLoading}
       />
 
       <OrthophonisteDetails 

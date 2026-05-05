@@ -3,6 +3,7 @@ import { Search, Trash2, Eye } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Orthophoniste } from "../../types";
+import { Skeleton } from "@/components/ui/Skeleton";
 import styles from "./OrthophonistesTable.module.css";
 
 interface OrthophonistesTableProps {
@@ -14,6 +15,7 @@ interface OrthophonistesTableProps {
   loadUserDetails: (orthophoniste: Orthophoniste) => void;
   setOrthophonisteToDelete: (orthophoniste: Orthophoniste) => void;
   getStatusDisplay: (orthophoniste: Orthophoniste) => { text: string; color: string };
+  isLoading?: boolean;
 }
 
 export function OrthophonistesTable({
@@ -24,9 +26,59 @@ export function OrthophonistesTable({
   limit,
   loadUserDetails,
   setOrthophonisteToDelete,
-  getStatusDisplay
+  getStatusDisplay,
+  isLoading = false
 }: OrthophonistesTableProps) {
   
+  if (isLoading) {
+    return (
+      <div className={styles.tableContainer}>
+        <div className={styles.tableHeader}>
+          <Skeleton className="w-48 h-6" />
+        </div>
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>Orthophoniste</th>
+                <th className={styles.th}>Statut</th>
+                <th className={styles.th}>Inscription</th>
+                <th className={`${styles.th} ${styles.thRight}`}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...Array(5)].map((_, i) => (
+                <tr key={i} className={styles.tr}>
+                  <td className={styles.td}>
+                    <div className={styles.userInfo}>
+                      <Skeleton className="w-10 h-10 rounded-xl" />
+                      <div className="space-y-2">
+                        <Skeleton className="w-32 h-4" />
+                        <Skeleton className="w-48 h-3" />
+                      </div>
+                    </div>
+                  </td>
+                  <td className={styles.td}>
+                    <Skeleton className="w-24 h-6 rounded-full" />
+                  </td>
+                  <td className={styles.td}>
+                    <Skeleton className="w-24 h-4" />
+                  </td>
+                  <td className={`${styles.td} ${styles.tdRight}`}>
+                    <div className={styles.actionButtons}>
+                      <Skeleton className="w-8 h-8 rounded-lg" />
+                      <Skeleton className="w-8 h-8 rounded-lg" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className={styles.tableContainer}>

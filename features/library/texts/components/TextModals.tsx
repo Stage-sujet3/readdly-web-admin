@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, FileText } from 'lucide-react';
+import { X, Check, FileText, Loader2 } from 'lucide-react';
 import { EducationalText, Language, Level, Theme } from '../../types';
 
 interface TextFormModalProps {
@@ -16,10 +16,9 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
   const [language, setLanguage] = useState<string>('Français');
   const [status, setStatus] = useState<string>('brouillon');
   const [level, setLevel] = useState<Level>('Facile');
-  const [theme, setTheme] = useState<Theme>('Général' as any);
+  const [theme, setTheme] = useState<Theme>('Science');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Réinitialiser les champs quand initialData change (pour l'édition)
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || '');
@@ -27,59 +26,25 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
       setLanguage(initialData.language || 'Français');
       setStatus(initialData.status || 'brouillon');
       setLevel(initialData.level || 'Facile');
-      setTheme(initialData.theme || 'Général' as any);
+      setTheme(initialData.theme || 'Science' as any);
     } else {
       setTitle('');
       setContent('');
       setLanguage('Français');
       setStatus('brouillon');
       setLevel('Facile');
-      setTheme('Général' as any);
+      setTheme('Science' as any);
     }
   }, [initialData, isOpen]);
-
 
   if (!isOpen) return null;
   const isEdit = !!initialData;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation simple - ne pas accepter les champs vides ou seulement des espaces
-    if (!title.trim()) {
-      alert("Le titre est obligatoire");
-      return;
-    }
-    
-    if (!content.trim()) {
-      alert("Le contenu est obligatoire");
-      return;
-    }
-    
-    if (!language) {
-      alert("La langue est obligatoire");
-      return;
-    }
-    
-    if (!status) {
-      alert("Le statut est obligatoire");
-      return;
-    }
-    
     setIsSubmitting(true);
     try {
-      await onSave({ 
-        title: title.trim(), 
-        content: content.trim(),
-        language: language.trim(),
-        status: status.trim(),
-        level,
-        theme
-      });
-      // La page parent (page.tsx) ferme le modal via setIsFormOpen(false)
-    } catch (error) {
-      console.error("Error during save:", error);
-      // Ne pas fermer en cas d'erreur, laisser l'utilisateur corriger
+      await onSave({ title, content, language, status, level, theme });
     } finally {
       setIsSubmitting(false);
     }
@@ -87,146 +52,108 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-10 md:pl-[340px]">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
         <motion.div
-           initial={{ y: -50, opacity: 0, rotate: -2 }} animate={{ y: 0, opacity: 1, rotate: 0 }} exit={{ y: 50, opacity: 0, rotate: 2 }}
-           className="relative w-full max-w-2xl bg-white rounded-xl shadow-[10px_20px_60px_rgba(0,0,0,0.15)] max-h-[95vh] flex flex-col font-sans border border-gray-200 z-10"
+           initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
+           className="relative w-full max-w-6xl h-[90vh] bg-white rounded-[3rem] shadow-2xl flex flex-col border border-slate-200 z-10 overflow-hidden"
         >
-          <div className="absolute inset-x-0 h-px top-1/3 bg-black/5 pointer-events-none" />
-          
-          <div className="flex-1 flex flex-col px-8 py-6 min-h-0 relative z-10">
-            <div className="flex justify-between items-center mb-6 shrink-0">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {isEdit ? 'Modifier le texte' : 'Nouveau texte éducatif'}
-              </h2>
-              <button type="button" onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500">
-                <X className="w-5 h-5" />
-              </button>
+          {/* Header */}
+          <div className="px-12 py-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-[2rem] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-200">
+                <FileText className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight">
+                  {isEdit ? 'Modifier le Texte' : 'Nouveau Texte Éducatif'}
+                </h2>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Éditeur de contenu pédagogique</p>
+              </div>
+            </div>
+            <button type="button" onClick={onClose} className="p-3 hover:bg-red-50 hover:text-red-500 rounded-full transition-all text-slate-400">
+              <X className="w-8 h-8" />
+            </button>
+          </div>
+
+          <div className="flex-1 flex min-h-0">
+            {/* Left Sidebar - Meta */}
+            <div className="w-80 bg-slate-50/50 border-r border-slate-100 p-10 space-y-10 overflow-y-auto custom-scrollbar">
+               <div className="space-y-6">
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Configuration</label>
+                    <div className="space-y-4">
+                       <div className="space-y-1.5">
+                         <span className="text-[9px] font-bold text-slate-500 ml-1">Langue</span>
+                         <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm shadow-sm" value={language} onChange={(e) => setLanguage(e.target.value)}>
+                           <option value="Français">Français</option><option value="Anglais">Anglais</option><option value="Arabe">Arabe</option>
+                         </select>
+                       </div>
+                       <div className="space-y-1.5">
+                         <span className="text-[9px] font-bold text-slate-500 ml-1">Niveau</span>
+                         <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm shadow-sm" value={level} onChange={(e) => setLevel(e.target.value as Level)}>
+                           <option value="Facile">Facile</option><option value="Moyen">Moyen</option><option value="Difficile">Difficile</option>
+                         </select>
+                       </div>
+                       <div className="space-y-1.5">
+                         <span className="text-[9px] font-bold text-slate-500 ml-1">Thème</span>
+                         <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm shadow-sm" value={theme} onChange={(e) => setTheme(e.target.value as Theme)}>
+                           <option value="Science">Science</option><option value="Nature">Nature</option><option value="Histoire">Histoire</option><option value="Animaux">Animaux</option><option value="Aventure">Aventure</option>
+                         </select>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Statut de publication</label>
+                    <div className="flex flex-col gap-2">
+                      {(['brouillon', 'actif', 'inactif'] as const).map((s) => (
+                        <button key={s} type="button" onClick={() => setStatus(s)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${status === s ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white text-slate-400 border border-slate-100 hover:border-indigo-200'}`}>
+                          <div className={`w-2 h-2 rounded-full ${status === s ? 'bg-white' : 'bg-slate-300'}`} />
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                 </div>
+               </div>
+
+               <div className="pt-10 border-t border-slate-100">
+                  <button 
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="w-full py-5 bg-indigo-600 text-white font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-5 h-5" />}
+                    Enregistrer
+                  </button>
+               </div>
             </div>
 
-            <form className="flex-1 flex flex-col min-h-0" onSubmit={handleSubmit}>
-              <div className="flex-1 overflow-y-auto space-y-6 pb-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Titre *
-                    </label>
-                    <input 
-                      type="text" 
-                      placeholder="Entrez le titre du texte" 
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5f6ad8] focus:border-transparent text-gray-900 placeholder-gray-500" 
-                      value={title} 
-                      onChange={(e) => setTitle(e.target.value)} 
-                      required 
-                    />
-                  </div>
+            {/* Main Editor */}
+            <div className="flex-1 flex flex-col p-12 gap-8 overflow-hidden">
+               <div className="space-y-2">
+                  <label className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.3em] ml-1">Titre de la leçon</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Le voyage de l'eau..." 
+                    className="w-full bg-slate-50 border-b-2 border-slate-100 px-0 py-4 outline-none focus:border-indigo-500 text-slate-800 font-black text-4xl transition-all placeholder:text-slate-200" 
+                    value={title} 
+                    onChange={(e) => setTitle(e.target.value)} 
+                    required 
+                  />
+               </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Langue *
-                    </label>
-                    <select 
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5f6ad8] focus:border-transparent text-gray-900" 
-                      value={language} 
-                      onChange={(e) => setLanguage(e.target.value)}
-                      required
-                    >
-                      <option value="Français">Français</option>
-                      <option value="Anglais">Anglais</option>
-                      <option value="Arabe">Arabe</option>
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Niveau *
-                      </label>
-                      <select 
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5f6ad8] focus:border-transparent text-gray-900" 
-                        value={level} 
-                        onChange={(e) => setLevel(e.target.value as Level)}
-                        required
-                      >
-                        <option value="Facile">Facile</option>
-                        <option value="Moyen">Moyen</option>
-                        <option value="Difficile">Difficile</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Thème *
-                      </label>
-                      <select 
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5f6ad8] focus:border-transparent text-gray-900" 
-                        value={theme} 
-                        onChange={(e) => setTheme(e.target.value as Theme)}
-                        required
-                      >
-                        <option value="Animaux">Animaux</option>
-                        <option value="École">École</option>
-                        <option value="Émotions">Émotions</option>
-                        <option value="Famille">Famille</option>
-                        <option value="Nature">Nature</option>
-                        <option value="Aventure">Aventure</option>
-                        <option value="Science">Science</option>
-                        <option value="Histoire">Histoire</option>
-                        <option value="Autre">Autre</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Statut *
-                    </label>
-                    <select 
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5f6ad8] focus:border-transparent text-gray-900" 
-                      value={status} 
-                      onChange={(e) => setStatus(e.target.value)}
-                      required
-                    >
-                      <option value="brouillon">Brouillon</option>
-                      <option value="actif">Actif</option>
-                      <option value="inactif">Inactif</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contenu *
-                    </label>
-                    <textarea 
-                      placeholder="Entrez le contenu du texte éducatif" 
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5f6ad8] focus:border-transparent text-gray-900 placeholder-gray-500 resize-y min-h-[300px]" 
-                      value={content} 
-                      onChange={(e) => setContent(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button type="button" onClick={onClose} className="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">
-                  Annuler
-                </button>
-                <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-[#5f6ad8] hover:bg-[#444fc0] text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Enregistrement...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4" /> Enregistrer
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+               <div className="flex-1 flex flex-col min-h-0">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1 mb-4">Contenu didactique</label>
+                  <textarea 
+                    placeholder="Écrivez le savoir ici..." 
+                    className="flex-1 w-full bg-slate-50/30 border border-slate-100 rounded-[2.5rem] px-10 py-10 outline-none focus:bg-white focus:border-indigo-500 text-slate-700 font-medium text-lg leading-relaxed resize-none custom-scrollbar shadow-inner" 
+                    value={content} 
+                    onChange={(e) => setContent(e.target.value)} 
+                    required 
+                  />
+               </div>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -239,24 +166,45 @@ export function TextViewModal({ isOpen, onClose, content }: { isOpen: boolean, o
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 perspective-[2000px]">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-10 md:pl-[340px]">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
+        
         <motion.div
-           initial={{ y: 50, opacity: 0, rotate: 2 }} animate={{ y: 0, opacity: 1, rotate: 0 }} exit={{ y: 50, opacity: 0, rotate: -2 }}
-           className="relative w-full max-w-4xl bg-[#fffdf5] rounded-sm shadow-2xl p-12 font-mono flex flex-col max-h-[85vh] z-10"
+           initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
+           className="relative w-full max-w-5xl h-[85vh] bg-white rounded-[3rem] shadow-2xl flex flex-col border border-slate-200 z-10 overflow-hidden"
         >
-          <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-800 transition-colors border border-transparent hover:border-slate-800 rounded-full">
-            <X className="w-6 h-6" />
-          </button>
-
-          <div className="mb-10 text-center border-b-2 border-slate-800 border-dashed pb-8">
-             <div className="text-slate-400 font-bold uppercase tracking-[0.3em] text-xs mb-4">Texte Éducatif</div>
-             <h1 className="text-4xl font-extrabold text-slate-800 uppercase tracking-widest leading-snug">{content.title}</h1>
+          {/* Header */}
+          <div className="px-12 py-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-[2rem] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-200">
+                <FileText className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-black text-slate-800 tracking-tight">{content.title}</h1>
+                <div className="flex items-center gap-4 mt-1">
+                   <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{content.theme}</span>
+                   <div className="w-1 h-1 bg-slate-300 rounded-full" />
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{content.level}</span>
+                </div>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-3 hover:bg-red-50 hover:text-red-500 rounded-full transition-all text-slate-400">
+              <X className="w-8 h-8" />
+            </button>
           </div>
 
-          <div className="overflow-y-auto custom-scrollbar pr-4 text-slate-700 leading-relaxed text-lg whitespace-pre-wrap">
-             <p>{content.content}</p>
+          <div className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+             <div className="max-w-3xl mx-auto">
+                <p className="text-slate-700 text-xl leading-relaxed font-medium whitespace-pre-wrap italic opacity-80 border-l-4 border-indigo-100 pl-8">
+                  {content.content}
+                </p>
+             </div>
+          </div>
+
+          <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex justify-center">
+             <button onClick={onClose} className="px-10 py-4 bg-white border border-slate-200 text-slate-400 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-slate-800 hover:text-white transition-all shadow-sm">
+               Fermer la lecture
+             </button>
           </div>
         </motion.div>
       </div>

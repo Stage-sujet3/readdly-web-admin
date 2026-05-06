@@ -37,17 +37,18 @@ export function useAdminStats() {
         const response = await getAdminStats(controller.signal)
         clearTimeout(timeoutId)
         
+        console.log("[useAdminStats] API Response:", response)
+        
         if (response.data?.success) {
+          console.log("[useAdminStats] Stats Data:", response.data.data)
           setStatsData(response.data.data)
         } else {
+          console.error("[useAdminStats] API Error:", response.data)
           setError("Impossible de récupérer les statistiques")
         }
       } catch (err: any) {
         console.error("[useAdminStats] Failed:", err)
-        // Don't set error for timeout/abort errors
-        if (err.name !== 'AbortError') {
-          setError(err?.message || "Erreur réseau")
-        }
+        setError(err?.message || "Erreur réseau")
       } finally {
         setLoading(false)
       }

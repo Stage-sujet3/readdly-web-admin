@@ -10,11 +10,10 @@ interface OrthophonistesFilterProps {
 }
 
 const statusOptions = [
-  { id: 'all', label: 'Tous', icon: Users, color: 'text-indigo-500' },
-  { id: 'VERIFIED', label: 'Vérifiés', icon: CheckCircle2, color: 'text-emerald-500' },
   { id: 'PENDING', label: 'En attente', icon: Clock, color: 'text-amber-500' },
+  { id: 'VERIFIED', label: 'Vérifiés', icon: CheckCircle2, color: 'text-emerald-500' },
   { id: 'REJECTED', label: 'Rejetés', icon: XCircle, color: 'text-rose-500' },
-  { id: 'NOT_STARTED', label: 'Non commencés', icon: UserX, color: 'text-slate-400' },
+  { id: 'all', label: 'Tous', icon: Users, color: 'text-indigo-500' },
 ];
 
 export function OrthophonistesFilter({
@@ -64,11 +63,11 @@ export function OrthophonistesFilter({
           ))}
         </div>
 
-        {statusFilter !== 'all' && (
+        {statusFilter !== 'PENDING' && (
           <motion.button 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            onClick={() => setStatusFilter('all')}
+            onClick={() => setStatusFilter('PENDING')}
             className="px-6 py-3 bg-white border border-slate-200 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm"
           >
             Réinitialiser

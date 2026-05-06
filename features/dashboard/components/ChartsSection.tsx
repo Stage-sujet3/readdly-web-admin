@@ -2,17 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { TrendingUp } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAdminStats } from "@/hooks/useAdminStats"
 
-const defaultMonthlyData = [
-  { month: "Janvier", users: 0 },
-  { month: "Février", users: 0 },
-  { month: "Mars", users: 0 },
-  { month: "Avril", users: 0 },
-  { month: "Mai", users: 0 },
-  { month: "Juin", users: 0 },
-]
 
 export function ChartsSection() {
   const { statsData } = useAdminStats();
@@ -32,8 +25,8 @@ export function ChartsSection() {
         className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white/60 shadow-premium"
       >
         <h3 className="text-xl font-bold text-slate-800 mb-8 px-2">Répartition des Utilisateurs</h3>
-        <div className="h-[350px] w-full min-h-[350px] min-w-[300px]">
-          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={350}>
+        <div className="h-[350px] w-full">
+          <ResponsiveContainer width="100%" height={350} minWidth={300} minHeight={350}>
             <PieChart>
               <Pie
                 data={userRoleData}
@@ -75,34 +68,41 @@ export function ChartsSection() {
         className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white/60 shadow-premium"
       >
         <h3 className="text-xl font-bold text-slate-800 mb-8 px-2">Croissance Utilisateurs (6 Mois)</h3>
-        <div className="h-[350px] w-full min-h-[350px] min-w-[300px]">
-          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={350}>
-            <BarChart data={statsData?.monthlyGrowth?.length ? statsData.monthlyGrowth : defaultMonthlyData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-              <XAxis 
-                dataKey="month" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
-                dy={15}
-              />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
-              />
-              <Tooltip 
-                cursor={{ fill: 'rgba(99, 102, 241, 0.04)' }}
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
-              />
-              <Bar 
-                dataKey="users" 
-                fill="#6366F1" 
-                radius={[12, 12, 0, 0]} 
-                barSize={50}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="h-[350px] w-full">
+          {statsData?.monthlyGrowth?.length ? (
+            <ResponsiveContainer width="100%" height={350} minWidth={300} minHeight={350}>
+              <BarChart data={statsData.monthlyGrowth} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis 
+                  dataKey="month" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
+                  dy={15}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
+                />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(99, 102, 241, 0.04)' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                />
+                <Bar 
+                  dataKey="users" 
+                  fill="#6366F1" 
+                  radius={[12, 12, 0, 0]} 
+                  barSize={50}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400">
+              <TrendingUp className="w-12 h-12 mb-3 opacity-50" />
+              <p className="text-sm font-medium">Aucune donnée de croissance disponible</p>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

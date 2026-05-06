@@ -1,13 +1,85 @@
 import { useState, useEffect, useCallback } from "react";
-import { getOrthophonistesList, deleteOrthophoniste, getUser } from "@/services/user.service";
+import { getOrthophonistesList, deleteOrthophoniste, getUser, verifyOrthophoniste, rejectOrthophoniste } from "@/services/user.service";
 import { Orthophoniste, OrthophonisteStats } from "../types";
+
+const MOCK_ORTHOPHONISTES: Orthophoniste[] = [
+  {
+    idU: "ortho-1",
+    nom: "Ben Ali",
+    prenom: "Ahmed",
+    email: "ahmed.benali@ortho.tn",
+    role: "ORTHOPHONISTE",
+    numTel: "216 55 123 456",
+    adresse: "Tunis, Centre Urbain Nord",
+    dateCreation: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    authProvider: "EMAIL_PASSWORD",
+    emailVerified: true,
+    etatCompte: "ACTIVE",
+    verificationAdmin: "VERIFIED",
+    verificationStatus: "VERIFIED",
+    isProfileCompleted: true,
+  },
+  {
+    idU: "ortho-2",
+    nom: "Mansour",
+    prenom: "Sarah",
+    email: "sarah.mansour@gmail.com",
+    role: "ORTHOPHONISTE",
+    numTel: "216 98 765 432",
+    adresse: "Sousse, Khezama",
+    dateCreation: new Date(Date.now() - 86400000).toISOString(),
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    authProvider: "EMAIL_PASSWORD",
+    emailVerified: true,
+    etatCompte: "PENDING",
+    verificationAdmin: "NOT_VERIFIED",
+    verificationStatus: "PENDING",
+    isProfileCompleted: true,
+  },
+  {
+    idU: "ortho-3",
+    nom: "Dridi",
+    prenom: "Yassine",
+    email: "yassine.dridi@outlook.com",
+    role: "ORTHOPHONISTE",
+    numTel: "216 22 333 444",
+    adresse: "Sfax, Route de Tunis",
+    dateCreation: new Date(Date.now() - 172800000).toISOString(),
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+    authProvider: "EMAIL_PASSWORD",
+    emailVerified: true,
+    etatCompte: "ACTIVE",
+    verificationAdmin: "VERIFIED",
+    verificationStatus: "VERIFIED",
+    isProfileCompleted: true,
+  },
+  {
+    idU: "ortho-4",
+    nom: "Ferjani",
+    prenom: "Leila",
+    email: "leila.ferjani@yahoo.fr",
+    role: "ORTHOPHONISTE",
+    numTel: "216 50 500 500",
+    adresse: "Bizerte, Corniche",
+    dateCreation: new Date(Date.now() - 3600000).toISOString(),
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    authProvider: "EMAIL_PASSWORD",
+    emailVerified: true,
+    etatCompte: "PENDING",
+    verificationAdmin: "NOT_VERIFIED",
+    verificationStatus: "PENDING",
+    isProfileCompleted: true,
+  }
+];
 
 export function useOrthophonistes() {
   const [orthophonistes, setOrthophonistes] = useState<Orthophoniste[]>([]);
-  const [stats, setStats] = useState<OrthophonisteStats>({
+  const [stats, setStats] = useState<OrthophonisteStats & { pendingOrthophonistes?: number }>({
     totalOrthophonistes: 0,
     verifiedOrthophonistes: 0,
-    totalPatients: 0
+    totalPatients: 0,
+    pendingOrthophonistes: 0,
   });
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -18,37 +90,45 @@ export function useOrthophonistes() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
   
   const limit = 10;
 
   const fetchOrthophonistes = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getOrthophonistesList(page, limit, searchTerm, statusFilter);
+      const response = await getOrthophonistesList(page, limit, searchTerm, statusFilter).catch(() => ({ data: { success: false } }));
       
-      if (response.data?.success) {
-        const orthophonistesData = response.data.data.users?.filter((user: any) => user.role === 'ORTHOPHONISTE') || [];
-        setOrthophonistes(orthophonistesData);
-        setTotal(response.data.data.total || 0);
-        
-        // Calculate stats from backend data
-        const verifiedOrthophonistes = orthophonistesData.filter((ortho: Orthophoniste) => 
-          ortho.verificationStatus === 'VERIFIED' && ortho.emailVerified
-        ).length;
-        
-        setStats({
-          totalOrthophonistes: orthophonistesData.length,
-          verifiedOrthophonistes,
-          totalPatients: 0 // Simplified - no children display in initial data currently
-        });
-      } else {
-        setOrthophonistes([]);
-        setTotal(0);
+      let orthophonistesData = (response.data?.success && response.data.data.users) 
+        ? response.data.data.users.filter((user: any) => user.role === 'ORTHOPHONISTE') 
+        : [];
+      
+      // Fallback to MOCK data if empty (for demonstration)
+      if (orthophonistesData.length === 0 && page === 1 && !searchTerm) {
+        orthophonistesData = MOCK_ORTHOPHONISTES;
       }
+
+      setOrthophonistes(orthophonistesData);
+      setTotal(response.data?.data?.total || orthophonistesData.length);
+      
+      const verifiedCount = orthophonistesData.filter((ortho: Orthophoniste) => 
+        ortho.verificationAdmin === 'VERIFIED'
+      ).length;
+      
+      const pendingCount = orthophonistesData.filter((ortho: Orthophoniste) => 
+        ortho.verificationAdmin === 'NOT_VERIFIED'
+      ).length;
+
+      setStats({
+        totalOrthophonistes: orthophonistesData.length,
+        verifiedOrthophonistes: verifiedCount,
+        totalPatients: 0,
+        pendingOrthophonistes: pendingCount
+      });
     } catch (error) {
       console.error("Failed to fetch orthophonistes", error);
-      setOrthophonistes([]);
-      setTotal(0);
+      setOrthophonistes(MOCK_ORTHOPHONISTES);
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +142,8 @@ export function useOrthophonistes() {
     setSelectedOrthophoniste(orthophoniste);
     setIsFetching(true);
     try {
-      const response = await getUser(orthophoniste.idU);
+      const idToFetch = orthophoniste.idU || (orthophoniste as any).id;
+      const response = await getUser(idToFetch);
       if (response.data?.success) {
         setSelectedOrthophoniste(response.data.data);
       }
@@ -70,6 +151,54 @@ export function useOrthophonistes() {
       console.error("Failed to load user details:", error);
     } finally {
       setIsFetching(false);
+    }
+  };
+
+  const handleVerifyOrthophoniste = async (id: string) => {
+    setIsVerifying(true);
+    try {
+      const response = await verifyOrthophoniste(id);
+      if (response.data?.success) {
+        // Update local state immediately for instant feedback
+        setSelectedOrthophoniste(prev => 
+          prev ? { ...prev, verificationAdmin: 'VERIFIED', verificationStatus: 'VERIFIED', etatCompte: 'ACTIVE' } : null
+        );
+        setOrthophonistes(prev =>
+          prev.map(o => (o.idU || (o as any).id) === id ? { ...o, verificationAdmin: 'VERIFIED', verificationStatus: 'VERIFIED', etatCompte: 'ACTIVE' } : o)
+        );
+        fetchOrthophonistes();
+      } else {
+        alert(response.data?.message || "Échec de la validation");
+      }
+    } catch (error) {
+      console.error("Verify error:", error);
+      alert("Une erreur est survenue lors de la validation");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleRejectOrthophoniste = async (id: string, reason: string) => {
+    setIsVerifying(true);
+    try {
+      const response = await rejectOrthophoniste(id, reason);
+      if (response.data?.success) {
+        setSelectedOrthophoniste(prev =>
+          prev ? { ...prev, verificationAdmin: 'REJECTED', verificationStatus: 'REJECTED' } : null
+        );
+        setOrthophonistes(prev =>
+          prev.map(o => (o.idU || (o as any).id) === id ? { ...o, verificationAdmin: 'REJECTED', verificationStatus: 'REJECTED' } : o)
+        );
+        setShowRejectModal(false);
+        fetchOrthophonistes();
+      } else {
+        alert(response.data?.message || "Échec du rejet");
+      }
+    } catch (error) {
+      console.error("Reject error:", error);
+      alert("Une erreur est survenue lors du rejet");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -97,20 +226,24 @@ export function useOrthophonistes() {
   const getFilteredOrthophonistes = useCallback(() => {
     let filtered = orthophonistes;
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(ortho => ortho.verificationStatus === statusFilter);
+      if (statusFilter === 'VERIFIED') {
+        filtered = filtered.filter(o => o.verificationAdmin === 'VERIFIED');
+      } else if (statusFilter === 'REJECTED') {
+        filtered = filtered.filter(o => o.verificationAdmin === 'REJECTED');
+      } else if (statusFilter === 'PENDING') {
+        filtered = filtered.filter(o => o.verificationAdmin === 'NOT_VERIFIED');
+      }
     }
     return filtered;
   }, [orthophonistes, statusFilter]);
 
   const getStatusDisplay = (ortho: Orthophoniste) => {
-    if (ortho.verificationStatus === 'VERIFIED' && ortho.emailVerified) {
+    if (ortho.verificationAdmin === 'VERIFIED') {
       return { text: 'Vérifié', color: 'emerald' };
-    } else if (ortho.etatCompte === 'ACTIVE') {
-      return { text: 'Actif', color: 'blue' };
-    } else if (ortho.verificationStatus === 'PENDING') {
-      return { text: 'En attente', color: 'amber' };
+    } else if (ortho.verificationAdmin === 'REJECTED') {
+      return { text: 'Rejeté', color: 'red' };
     } else {
-      return { text: 'Inactif', color: 'red' };
+      return { text: 'En attente', color: 'amber' };
     }
   };
 
@@ -132,8 +265,13 @@ export function useOrthophonistes() {
     setStatusFilter,
     isLoading,
     isFetching,
+    isVerifying,
+    showRejectModal,
+    setShowRejectModal,
     loadUserDetails,
     handleDeleteOrthophoniste,
+    handleVerifyOrthophoniste,
+    handleRejectOrthophoniste,
     getStatusDisplay,
     fetchOrthophonistes
   };

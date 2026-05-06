@@ -1,6 +1,6 @@
 export type AgeGroup = '3-5' | '6-8' | '9-12' | '13+';
 export type Level = 'Facile' | 'Moyen' | 'Difficile';
-export type Theme = 'Animaux' | 'École' | 'Émotions' | 'Famille' | 'Nature' | 'Aventure' | 'Science' | 'Histoire' | 'Autre';
+export type Theme = 'Général' | 'Animaux' | 'École' | 'Émotions' | 'Famille' | 'Nature' | 'Aventure' | 'Science' | 'Histoire' | 'Sports' | 'Espace' | 'Alimentation' | 'Voyage' | 'Technologie' | 'Autre';
 export type ContentStatus = 'actif' | 'inactif' | 'brouillon';
 export type Language = 'Français' | 'Anglais' | 'Arabe';
 

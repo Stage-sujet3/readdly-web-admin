@@ -6,15 +6,6 @@ import { motion } from "framer-motion"
 import { Progress } from "@/components/ui/Progress"
 import { useAdminStats } from "@/hooks/useAdminStats"
 
-const defaultActivityData = [
-  { day: "Lun", activities: 0 },
-  { day: "Mar", activities: 0 },
-  { day: "Mer", activities: 0 },
-  { day: "Jeu", activities: 0 },
-  { day: "Ven", activities: 0 },
-  { day: "Sam", activities: 0 },
-  { day: "Dim", activities: 0 },
-]
 
 export function ActivitySection() {
   const { statsData } = useAdminStats();
@@ -52,36 +43,43 @@ export function ActivitySection() {
              <span className="text-[10px] font-bold text-[#5f6ad8] uppercase tracking-wider">Suivi en direct</span>
           </div>
         </div>
-        <div className="h-[300px] w-full min-h-[300px] min-w-[300px]">
-          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={300}>
-            <LineChart data={statsData?.weeklyActivity?.length ? statsData.weeklyActivity : defaultActivityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.03)" />
-              <XAxis 
-                dataKey="day" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
-                dy={15}
-              />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
-              />
-              <Tooltip 
-                cursor={{ fill: 'rgba(95, 106, 216, 0.04)' }}
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="activities" 
-                stroke="#5f6ad8" 
-                strokeWidth={3} 
-                dot={{ r: 5, strokeWidth: 2, fill: '#fff', stroke: '#5f6ad8' }}
-                activeDot={{ r: 7, strokeWidth: 0, fill: '#5f6ad8' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="h-[300px] w-full">
+          {statsData?.weeklyActivity?.length ? (
+            <ResponsiveContainer width="100%" height={300} minWidth={300} minHeight={300}>
+              <LineChart data={statsData.weeklyActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.03)" />
+                <XAxis 
+                  dataKey="day" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
+                  dy={15}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
+                />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(95, 106, 216, 0.04)' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="activities" 
+                  stroke="#5f6ad8" 
+                  strokeWidth={3} 
+                  dot={{ r: 5, strokeWidth: 2, fill: '#fff', stroke: '#5f6ad8' }}
+                  activeDot={{ r: 7, strokeWidth: 0, fill: '#5f6ad8' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400">
+              <Zap className="w-12 h-12 mb-3 opacity-50" />
+              <p className="text-sm font-medium">Aucune donnée d'activité disponible</p>
+            </div>
+          )}
         </div>
       </motion.div>
 

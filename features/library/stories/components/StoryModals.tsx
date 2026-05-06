@@ -24,7 +24,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
   const [coverImage, setCoverImage] = useState<string>(initialData?.coverImage || '');
   const [ageGroup, setAgeGroup] = useState<string>(initialData?.ageGroup || '6-8');
   const [level, setLevel] = useState<Level>(initialData?.level || 'Facile');
-  const [theme, setTheme] = useState<Theme>(initialData?.theme || 'Animaux');
+  const [theme, setTheme] = useState<Theme>(initialData?.theme || 'Général');
   const [status, setStatus] = useState<ContentStatus>(initialData?.status || 'brouillon');
   const [language, setLanguage] = useState<Language>(initialData?.language || 'Français');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -45,7 +45,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
       setCoverImage(initialData.coverImage || '');
       setAgeGroup(initialData.ageGroup || '6-8');
       setLevel(initialData.level || 'Facile');
-      setTheme(initialData.theme || 'Animaux');
+      setTheme(initialData.theme || 'Général');
       setStatus(initialData.status || 'brouillon');
       setLanguage(initialData.language || 'Français');
       if (initialData.content?.startsWith('data:application/pdf')) {
@@ -58,7 +58,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
       setCoverImage('');
       setAgeGroup('6-8');
       setLevel('Facile');
-      setTheme('Animaux');
+      setTheme('Général');
       setStatus('brouillon');
       setLanguage('Français');
       setPdfPreview(null);
@@ -158,7 +158,6 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
           language,
           type: storyType
         }, false);
-        await onSave({ title, description, content, coverImage, ageGroup, level, theme, status, language, type: storyType }, false);
       }
       onClose();
     } catch (err) {
@@ -237,7 +236,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
                      <div className="space-y-1.5">
                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Langue</label>
                        <select className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm appearance-none cursor-pointer" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
-                         <option value="Français">🇫🇷 Français</option><option value="Anglais">🇬🇧 Anglais</option><option value="Arabe">🇸🇦 Arabe</option>
+                         <option value="Français">Français</option><option value="Anglais">Anglais</option><option value="Arabe">Arabe</option>
                        </select>
                      </div>
                      <div className="space-y-1.5">
@@ -257,7 +256,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
                      <div className="space-y-1.5">
                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Thème</label>
                        <select className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm appearance-none cursor-pointer" value={theme} onChange={(e) => setTheme(e.target.value as Theme)}>
-                         <option value="Animaux">Animaux</option><option value="École">École</option><option value="Émotions">Émotions</option><option value="Famille">Famille</option><option value="Nature">Nature</option><option value="Aventure">Aventure</option><option value="Science">Science</option><option value="Histoire">Histoire</option><option value="Autre">Autre</option>
+                         <option value="Général">Général</option><option value="Animaux">Animaux</option><option value="École">École</option><option value="Émotions">Émotions</option><option value="Famille">Famille</option><option value="Nature">Nature</option><option value="Aventure">Aventure</option><option value="Science">Science</option><option value="Histoire">Histoire</option><option value="Sports">Sports</option><option value="Espace">Espace</option><option value="Alimentation">Alimentation</option><option value="Voyage">Voyage</option><option value="Technologie">Technologie</option><option value="Autre">Autre</option>
                        </select>
                      </div>
                    </div>

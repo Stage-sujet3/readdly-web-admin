@@ -1,9 +1,9 @@
-import React from "react";
-import { Baby, Search, Trash2, Eye } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+"use client"
+
+import React, { useState } from "react";
+import { Baby, Trash2, Eye, ChevronLeft, ChevronRight, Phone, Mail } from "lucide-react";
 import { Parent } from "../../types";
-import styles from "./ParentsTable.module.css";
+import { ChildrenDrawer } from "../ChildrenDrawer/ChildrenDrawer";
 
 interface ParentsTableProps {
   parents: Parent[];
@@ -14,6 +14,7 @@ interface ParentsTableProps {
   loadUserDetails: (parent: Parent) => void;
   setParentToDelete: (parent: Parent) => void;
   getStatusDisplay: (parent: Parent) => { text: string; color: string };
+  fetchParentChildren: (parentId: string) => Promise<Parent | null>;
 }
 
 export function ParentsTable({
@@ -24,150 +25,170 @@ export function ParentsTable({
   limit,
   loadUserDetails,
   setParentToDelete,
-  getStatusDisplay
+  getStatusDisplay,
+  fetchParentChildren
 }: ParentsTableProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeParent, setActiveParent] = useState<Parent | null>(null);
+  const [isLoadingChildren, setIsLoadingChildren] = useState<string | null>(null);
+
+  const handleOpenChildren = async (parent: Parent) => {
+    setActiveParent(parent);
+    
+    // If we already have children data loaded (and the count matches), we can just open it
+    if (parent.enfants && parent.enfants.length > 0) {
+      setDrawerOpen(true);
+      return;
+    }
+
+    // Otherwise, we need to fetch them
+    setIsLoadingChildren(parent.idU);
+    try {
+      const updatedParent = await fetchParentChildren(parent.idU);
+      if (updatedParent) {
+        setActiveParent(updatedParent);
+      }
+      setDrawerOpen(true);
+    } finally {
+      setIsLoadingChildren(null);
+    }
+  };
+
+  const statusColors: Record<string, string> = {
+    emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    red: "bg-rose-50 text-rose-700 border-rose-200"
+  };
   
+  const dotColors: Record<string, string> = {
+    emerald: "bg-emerald-500",
+    red: "bg-rose-500"
+  };
+
   return (
-    <>
-      <div className={styles.tableContainer}>
-        <div className={styles.tableHeader}>
-          <div className={styles.resultsText}>
-            {total} parent{total > 1 ? 's' : ''} trouvé{total > 1 ? 's' : ''}
-          </div>
-        </div>
-
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.th}>Parent</th>
-                <th className={styles.th}>Statut</th>
-                <th className={styles.th}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                    <Baby style={{ width: '1rem', height: '1rem' }} />
-                    Enfants
-                  </div>
-                </th>
-                <th className={styles.th}>Inscription</th>
-                <th className={`${styles.th} ${styles.thRight}`}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {parents.map((parent, index) => {
-                const fullName = parent.prenom && parent.nom ? 
-                  `${parent.prenom} ${parent.nom}` : 
-                  (parent as any).firstName && (parent as any).lastName ?
-                    `${(parent as any).firstName} ${(parent as any).lastName}` :
-                    (parent as any).name || parent.email || 'Parent';
-                
-                const status = getStatusDisplay(parent);
-                
-                // Dashboard specific colors mapping
-                const statusColors: Record<string, { bg: string, text: string, dot: string, border: string }> = {
-                  emerald: { bg: '#ecfdf5', text: '#047857', dot: '#10b981', border: '#a7f3d0' },
-                  blue: { bg: '#eff6ff', text: '#1d4ed8', dot: '#3b82f6', border: '#bfdbfe' },
-                  amber: { bg: '#fffbeb', text: '#b45309', dot: '#f59e0b', border: '#fde68a' },
-                  red: { bg: '#fef2f2', text: '#b91c1c', dot: '#ef4444', border: '#fecaca' }
-                };
-                
-                const currentStatusColor = statusColors[status.color] || statusColors.red;
-
-                const childrenCount = parent.enfants?.length || 
-                  (parent as any).children?.length ||
-                  (parent as any).totalChildren ||
-                  (parent as any).enfantCount ||
-                  0;
-
-                return (
-                  <tr key={parent.idU || `parent-${index}`} className={styles.tr}>
-                    <td className={styles.td}>
-                      <div className={styles.userInfo}>
-                        <div className={styles.avatar}>
-                          {fullName.substring(0, 2).toUpperCase()}
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                          <p className={styles.userName}>{fullName}</p>
-                          <p className={styles.userEmail}>{parent.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className={styles.td}>
-                      <span className={styles.statusBadge} style={{ backgroundColor: currentStatusColor.bg, color: currentStatusColor.text, borderColor: currentStatusColor.border }}>
-                        <span className={styles.statusDot} style={{ backgroundColor: currentStatusColor.dot }} />
-                        {status.text}
-                      </span>
-                    </td>
-                    <td className={styles.td}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Baby style={{ width: '1.25rem', height: '1.25rem', color: '#94a3b8' }} />
-                        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#334155' }}>
-                          {childrenCount}
-                        </span>
-                      </div>
-                    </td>
-                    <td className={styles.td}>
-                      <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#64748b' }}>
-                        {new Date(parent.dateCreation).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </span>
-                    </td>
-                    <td className={`${styles.td} ${styles.tdRight}`}>
-                      <div className={styles.actionButtons}>
-                        <button 
-                          onClick={() => loadUserDetails(parent)}
-                          className={styles.btnAction}
-                          title="Voir les détails"
-                        >
-                          <Eye style={{ width: '1.25rem', height: '1.25rem' }} />
-                        </button>
-                        <button 
-                          onClick={() => setParentToDelete(parent)}
-                          className={styles.btnDelete}
-                          title="Supprimer"
-                        >
-                          <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              
-              {parents.length === 0 && (
-                <tr>
-                  <td colSpan={5} style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-                    <div style={{ width: '4rem', height: '4rem', backgroundColor: '#f8fafc', borderRadius: '1rem', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
-                      <Search style={{ width: '1.5rem', height: '1.5rem', color: '#94a3b8' }} />
-                    </div>
-                    <p style={{ color: '#475569', fontSize: '0.875rem', fontWeight: 500 }}>Aucun parent ne correspond à vos critères de recherche.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+      <div className="p-6 bg-slate-50/50 border-b border-slate-100">
+        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
+          {total} PARENTS ENREGISTRÉS
+        </span>
       </div>
 
-      {total > limit && (
-        <div className={styles.pagination}>
-          <Button
-            variant="outline"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Précédent
-          </Button>
-          <span className={styles.paginationText}>
-            Page {page} sur {Math.ceil(total / limit)}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setPage(p => Math.min(Math.ceil(total / limit), p + 1))}
-            disabled={page >= Math.ceil(total / limit)}
-          >
-            Suivant
-          </Button>
-        </div>
-      )}
-    </>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-slate-50/30">
+              <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Parent</th>
+              <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</th>
+              <th className="px-6 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Enfants</th>
+              <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Statut</th>
+              <th className="px-6 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {parents.map((parent, index) => {
+              const fullName = `${parent.prenom} ${parent.nom}`;
+              const status = getStatusDisplay(parent);
+              const badgeClass = statusColors[status.color] || statusColors.red;
+              const dotClass = dotColors[status.color] || dotColors.red;
+              const childrenCount = parent.enfantCount || parent.enfants?.length || 0;
+              const isLoading = isLoadingChildren === parent.idU;
+
+              return (
+                <tr key={parent.idU || index} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 ${parent.genre?.toLowerCase() === 'female' || parent.genre?.toLowerCase() === 'fille' || parent.genre?.toLowerCase() === 'f' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'} rounded-2xl flex items-center justify-center font-black text-lg border shadow-sm transition-transform group-hover:scale-105`}>
+                        {parent.prenom?.[0]}{parent.nom?.[0]}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-sm font-black text-[#1a2a4a] group-hover:text-indigo-600 transition-colors">{fullName}</p>
+                          {parent.genre && (
+                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${parent.genre?.toLowerCase() === 'female' || parent.genre?.toLowerCase() === 'fille' || parent.genre?.toLowerCase() === 'f' ? 'bg-rose-100 text-rose-600' : 'bg-indigo-100 text-indigo-600'}`}>
+                              {parent.genre === 'F' || parent.genre?.toLowerCase() === 'female' || parent.genre?.toLowerCase() === 'fille' ? 'F' : 'M'}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-medium text-slate-500">{parent.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                        {parent.numTel || <span className="text-slate-400 italic font-medium">Non renseigné</span>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5 text-center">
+                    <button 
+                      onClick={() => handleOpenChildren(parent)}
+                      disabled={isLoading}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 rounded-xl transition-all disabled:opacity-50 group/badge"
+                    >
+                      {isLoading ? (
+                        <div className="w-4 h-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+                      ) : (
+                        <Baby className="w-4 h-4 text-indigo-500 group-hover/badge:scale-110 transition-transform" />
+                      )}
+                      <span className="text-sm font-black text-[#1a2a4a] group-hover/badge:text-indigo-700">{childrenCount}</span>
+                    </button>
+                  </td>
+                  <td className="px-6 py-5">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black ${badgeClass}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+                      {status.text}
+                    </span>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => loadUserDetails(parent)}
+                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                        title="Voir les détails"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={() => setParentToDelete(parent)}
+                        className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex justify-end items-center gap-4">
+        <button 
+          onClick={() => setPage(p => Math.max(1, p - 1))}
+          disabled={page === 1}
+          className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 disabled:opacity-50 transition-all shadow-sm"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">PAGE {page} / {Math.max(1, Math.ceil(total / limit))}</span>
+        <button 
+          onClick={() => setPage(p => Math.min(Math.ceil(total / limit), p + 1))}
+          disabled={page >= Math.ceil(total / limit)}
+          className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 disabled:opacity-50 transition-all shadow-sm"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+
+      <ChildrenDrawer 
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        parentName={activeParent ? `${activeParent.prenom} ${activeParent.nom}` : ""}
+        children={activeParent?.enfants || []}
+      />
+    </div>
   );
 }

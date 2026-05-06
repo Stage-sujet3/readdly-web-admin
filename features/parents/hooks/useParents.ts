@@ -108,6 +108,21 @@ export function useParents() {
     }
   };
 
+  const fetchParentChildren = async (parentId: string): Promise<Parent | null> => {
+    try {
+      const response = await getParentWithChildren(parentId);
+      if (response.data) {
+        const raw = response.data?.data || response.data;
+        const detailedParent = normalizeParent({ ...raw, role: 'PARENT' });
+        setParents(prev => prev.map(p => p.idU === detailedParent.idU ? detailedParent : p));
+        return detailedParent;
+      }
+    } catch (error) {
+      console.error("Failed to fetch parent children:", error);
+    }
+    return null;
+  };
+
   const handleDeleteParent = async () => {
     if (!parentToDelete) return;
     
@@ -132,18 +147,14 @@ export function useParents() {
   const getFilteredParents = useCallback(() => {
     let filtered = parents;
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(parent => parent.verificationStatus === statusFilter);
+      filtered = filtered.filter(parent => parent.etatCompte === statusFilter);
     }
     return filtered;
   }, [parents, statusFilter]);
 
   const getStatusDisplay = (parent: Parent) => {
-    if (parent.verificationStatus === 'VERIFIED' && parent.emailVerified) {
-      return { text: 'Vérifié', color: 'emerald' };
-    } else if (parent.etatCompte === 'ACTIVE') {
-      return { text: 'Actif', color: 'blue' };
-    } else if (parent.verificationStatus === 'PENDING') {
-      return { text: 'En attente', color: 'amber' };
+    if (parent.etatCompte === 'ACTIVE') {
+      return { text: 'Actif', color: 'emerald' };
     } else {
       return { text: 'Inactif', color: 'red' };
     }
@@ -170,6 +181,7 @@ export function useParents() {
     loadUserDetails,
     handleDeleteParent,
     getStatusDisplay,
-    fetchParents
+    fetchParents,
+    fetchParentChildren
   };
 }

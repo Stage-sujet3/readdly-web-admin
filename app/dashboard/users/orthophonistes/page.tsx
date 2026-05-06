@@ -3,7 +3,7 @@
 import { useOrthophonistes } from "@/features/orthophonistes/hooks/useOrthophonistes"
 import { OrthophonistesStats } from "@/features/orthophonistes/components/OrthophonistesStats/OrthophonistesStats"
 import { OrthophonistesFilter } from "@/features/orthophonistes/components/OrthophonistesFilter/OrthophonistesFilter"
-import { OrthophonistesTable } from "@/features/orthophonistes/components/OrthophonistesTable/OrthophonistesTable"
+import { OrthophonistesGrid } from "@/features/orthophonistes/components/OrthophonistesTable/OrthophonistesGrid"
 import { OrthophonisteDetails } from "@/features/orthophonistes/components/OrthophonisteDetails/OrthophonisteDetails"
 import { OrthophonisteDeleteModal } from "@/features/orthophonistes/components/OrthophonisteDeleteModal/OrthophonisteDeleteModal"
 
@@ -27,7 +27,12 @@ export default function OrthophonistesPage() {
     loadUserDetails,
     handleDeleteOrthophoniste,
     getStatusDisplay,
-    isLoading
+    isLoading,
+    isVerifying,
+    showRejectModal,
+    setShowRejectModal,
+    handleVerifyOrthophoniste,
+    handleRejectOrthophoniste,
   } = useOrthophonistes();
 
   return (
@@ -41,7 +46,7 @@ export default function OrthophonistesPage() {
         setStatusFilter={setStatusFilter}
       />
       
-      <OrthophonistesTable 
+      <OrthophonistesGrid 
         orthophonistes={orthophonistes}
         total={total}
         page={page}
@@ -58,6 +63,11 @@ export default function OrthophonistesPage() {
         setSelectedOrthophoniste={setSelectedOrthophoniste}
         setOrthophonisteToDelete={setOrthophonisteToDelete}
         getStatusDisplay={getStatusDisplay}
+        showRejectModal={showRejectModal}
+        setShowRejectModal={setShowRejectModal}
+        isVerifying={isVerifying}
+        onVerify={handleVerifyOrthophoniste}
+        onReject={handleRejectOrthophoniste}
       />
 
       <OrthophonisteDeleteModal 

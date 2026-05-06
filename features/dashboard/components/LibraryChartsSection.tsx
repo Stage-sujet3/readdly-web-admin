@@ -12,7 +12,7 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { BookOpen, Globe, GraduationCap, FileText, BookMarked, Loader2, RefreshCw, AlertCircle } from "lucide-react"
+import { BookOpen, Globe, GraduationCap, FileText, BookMarked, Loader2, RefreshCw, AlertCircle, Library } from "lucide-react"
 import { useLibraryStats } from "@/hooks/useLibraryStats"
 
 // ── Custom Tooltip ──────────────────────────────────────────────────────────
@@ -120,9 +120,9 @@ function CategorizedCharts({
         <h3 className="text-lg font-bold text-slate-800">{title}</h3>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 flex-1">
         {/* ── Left: Language Donut ── */}
-        <div className="p-8 min-h-0 min-w-0">
+        <div className="p-8 min-h-[300px]">
           <div className="flex items-center gap-2 mb-6">
             <Globe className="w-4 h-4 text-indigo-500" />
             <h4 className="font-bold text-slate-700 text-sm uppercase tracking-wider">
@@ -132,8 +132,8 @@ function CategorizedCharts({
 
           <AnimatePresence>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 + delay }}>
-              <div className="h-[240px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-[240px] w-full">
+                <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <defs>
                       {languageData.map((d, i) => (
@@ -196,7 +196,7 @@ function CategorizedCharts({
         </div>
 
         {/* ── Right: Level Radial Bar ── */}
-        <div className="p-8 min-h-0 min-w-0">
+        <div className="p-8 min-h-[300px]">
           <div className="flex items-center gap-2 mb-6">
             <GraduationCap className="w-4 h-4 text-purple-500" />
             <h4 className="font-bold text-slate-700 text-sm uppercase tracking-wider">
@@ -206,8 +206,8 @@ function CategorizedCharts({
 
           <AnimatePresence>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 + delay }}>
-              <div className="h-[240px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-[240px] w-full">
+                <ResponsiveContainer width="100%" height={240}>
                   <RadialBarChart
                     cx="50%"
                     cy="55%"
@@ -425,7 +425,7 @@ export function LibraryChartsSection() {
           <SkeletonChart />
         ) : totalStories === 0 && totalWords === 0 && totalTexts === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-20">
-            <div className="text-6xl mb-6">📚</div>
+            <Library className="w-16 h-16 text-slate-200 mb-6" />
             <h3 className="text-xl font-black text-slate-800 mb-2">Bibliothèque Vide</h3>
             <p className="text-slate-400 text-sm max-w-sm">Importez du contenu pour voir les statistiques.</p>
           </div>

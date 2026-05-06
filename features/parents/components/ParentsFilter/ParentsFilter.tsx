@@ -11,10 +11,8 @@ interface ParentsFilterProps {
 
 const statusOptions = [
   { id: 'all', label: 'Tous', icon: Users, color: 'text-indigo-500' },
-  { id: 'VERIFIED', label: 'Vérifiés', icon: CheckCircle2, color: 'text-emerald-500' },
-  { id: 'PENDING', label: 'En attente', icon: Clock, color: 'text-amber-500' },
-  { id: 'REJECTED', label: 'Rejetés', icon: XCircle, color: 'text-rose-500' },
-  { id: 'NOT_STARTED', label: 'Non commencés', icon: UserX, color: 'text-slate-400' },
+  { id: 'ACTIVE', label: 'Actifs', icon: CheckCircle2, color: 'text-emerald-500' },
+  { id: 'INACTIVE', label: 'Inactifs', icon: UserX, color: 'text-slate-400' },
 ];
 
 export function ParentsFilter({

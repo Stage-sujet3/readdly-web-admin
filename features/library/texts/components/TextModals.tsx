@@ -16,7 +16,8 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
   const [language, setLanguage] = useState<string>('Français');
   const [status, setStatus] = useState<string>('brouillon');
   const [level, setLevel] = useState<Level>('Facile');
-  const [theme, setTheme] = useState<Theme>('Science');
+  const [theme, setTheme] = useState<Theme>('Général');
+  const [ageGroup, setAgeGroup] = useState<string>('6-8');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -26,14 +27,16 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
       setLanguage(initialData.language || 'Français');
       setStatus(initialData.status || 'brouillon');
       setLevel(initialData.level || 'Facile');
-      setTheme(initialData.theme || 'Science' as any);
+      setTheme(initialData.theme || 'Général');
+      setAgeGroup(initialData.ageGroup || '6-8');
     } else {
       setTitle('');
       setContent('');
       setLanguage('Français');
       setStatus('brouillon');
       setLevel('Facile');
-      setTheme('Science' as any);
+      setTheme('Général');
+      setAgeGroup('6-8');
     }
   }, [initialData, isOpen]);
 
@@ -44,7 +47,7 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await onSave({ title, content, language, status, level, theme });
+      await onSave({ title, content, language, status, level, theme, ageGroup });
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +101,13 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
                        <div className="space-y-1.5">
                          <span className="text-[9px] font-bold text-slate-500 ml-1">Thème</span>
                          <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm shadow-sm" value={theme} onChange={(e) => setTheme(e.target.value as Theme)}>
-                           <option value="Science">Science</option><option value="Nature">Nature</option><option value="Histoire">Histoire</option><option value="Animaux">Animaux</option><option value="Aventure">Aventure</option>
+                           <option value="Général">Général</option><option value="Animaux">Animaux</option><option value="École">École</option><option value="Émotions">Émotions</option><option value="Famille">Famille</option><option value="Nature">Nature</option><option value="Aventure">Aventure</option><option value="Science">Science</option><option value="Histoire">Histoire</option><option value="Sports">Sports</option><option value="Espace">Espace</option><option value="Alimentation">Alimentation</option><option value="Voyage">Voyage</option><option value="Technologie">Technologie</option><option value="Autre">Autre</option>
+                         </select>
+                       </div>
+                       <div className="space-y-1.5">
+                         <span className="text-[9px] font-bold text-slate-500 ml-1">Tranche d'âge</span>
+                         <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm shadow-sm" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)}>
+                           <option value="3-5">3-5 ans</option><option value="6-8">6-8 ans</option><option value="9-12">9-12 ans</option><option value="13+">13+ ans</option>
                          </select>
                        </div>
                     </div>

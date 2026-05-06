@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '@/services/api';
 
 export interface AppNotification {
   id: string;
@@ -24,38 +25,53 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
-  // Mock initial notifications for demonstration since we don't have a real endpoint yet
-  useEffect(() => {
-    setNotifications([
-      {
-        id: '1',
-        title: 'Nouvel orthophoniste',
-        message: 'Dr. Martin s\'est inscrit(e) en tant qu\'orthophoniste et est en attente de vérification.',
-        type: 'info',
-        isRead: false,
-        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
-      },
-      {
-        id: '2',
-        title: 'Mise à jour système',
-        message: 'La version 2.1 du tableau de bord a été déployée avec succès.',
-        type: 'success',
-        isRead: true,
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.get('/admin/notifications');
+      if (response.data?.success) {
+        setNotifications(response.data.data);
       }
-    ]);
+    } catch (err: any) {
+      console.error('[NotificationProvider] Failed to fetch:', err);
+      setError(err?.message || 'Erreur lors du chargement des notifications');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    // Refresh every 2 minutes
+    const interval = setInterval(fetchNotifications, 2 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-    );
+  const markAsRead = async (id: string) => {
+    try {
+      // Optimistic update
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+      );
+      await api.patch(`/admin/notifications/${id}/read`);
+    } catch (err) {
+      console.error('[NotificationProvider] Failed to mark as read:', err);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+  const markAllAsRead = async () => {
+    try {
+      // Optimistic update
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      await api.patch('/admin/notifications/read-all');
+    } catch (err) {
+      console.error('[NotificationProvider] Failed to mark all as read:', err);
+    }
   };
 
   const addNotification = (notification: Omit<AppNotification, 'id' | 'isRead' | 'createdAt'>) => {

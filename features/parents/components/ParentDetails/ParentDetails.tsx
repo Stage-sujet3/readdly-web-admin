@@ -35,10 +35,6 @@ export function ParentDetails({
   let statusBadgeStyle = {};
   if (status.color === 'emerald') {
     statusBadgeStyle = { backgroundColor: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' };
-  } else if (status.color === 'blue') {
-    statusBadgeStyle = { backgroundColor: '#eff6ff', color: '#1d4ed8', borderColor: '#bfdbfe' };
-  } else if (status.color === 'amber') {
-    statusBadgeStyle = { backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fde68a' };
   } else {
     statusBadgeStyle = { backgroundColor: '#fef2f2', color: '#b91c1c', borderColor: '#fecaca' };
   }
@@ -51,7 +47,14 @@ export function ParentDetails({
       <div className={styles.drawerContainer}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <div className={styles.avatar}>
+            <div 
+              className={styles.avatar} 
+              style={{ 
+                backgroundColor: selectedParent.genre?.toLowerCase() === 'female' || selectedParent.genre?.toLowerCase() === 'fille' || selectedParent.genre?.toLowerCase() === 'f' ? '#fff1f2' : '#eff6ff',
+                color: selectedParent.genre?.toLowerCase() === 'female' || selectedParent.genre?.toLowerCase() === 'fille' || selectedParent.genre?.toLowerCase() === 'f' ? '#e11d48' : '#2563eb',
+                borderColor: selectedParent.genre?.toLowerCase() === 'female' || selectedParent.genre?.toLowerCase() === 'fille' || selectedParent.genre?.toLowerCase() === 'f' ? '#fecdd3' : '#bfdbfe'
+              }}
+            >
               {fullName.substring(0, 2).toUpperCase()}
             </div>
             <div style={{ flex: 1 }}>
@@ -165,25 +168,7 @@ export function ParentDetails({
                   </div>
                 </div>
 
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><Activity className={styles.smallIcon} /> Statut Initial</div>
-                  <div className={styles.value}>{selectedParent.verificationStatus}</div>
-                </div>
 
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><ShieldCheck className={styles.smallIcon} /> Vérification Admin</div>
-                  <div className={styles.value}>
-                    {selectedParent.verificationAdmin ? (
-                      <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                        <ShieldCheck style={{ width: '1.25rem', height: '1.25rem' }} /> Validé
-                      </span>
-                    ) : (
-                      <span style={{ color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                        <AlertCircle style={{ width: '1.25rem', height: '1.25rem' }} /> En attente
-                      </span>
-                    )}
-                  </div>
-                </div>
 
               </div>
             </div>
@@ -196,22 +181,34 @@ export function ParentDetails({
                   Enfants Inscrits ({parentChildren.length})
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {parentChildren.map((enfant: any, index: number) => (
-                    <div key={index} className={styles.childCard}>
-                      <div className={styles.childNameBox}>
-                        <div className={styles.childIcon}>
-                          <Baby style={{ width: '1.25rem', height: '1.25rem' }} />
+                    {parentChildren.map((enfant: any, index: number) => {
+                      const isGirl = enfant.genre?.toLowerCase() === 'female' || enfant.genre?.toLowerCase() === 'fille' || enfant.genre?.toLowerCase() === 'f';
+                      const cardClass = isGirl ? styles.childCardGirl : styles.childCardBoy;
+                      
+                      return (
+                        <div key={index} className={`${styles.childCard} ${cardClass}`}>
+                          <div className={styles.childNameBox}>
+                            <div className={styles.childIcon}>
+                              <Baby style={{ width: '1.25rem', height: '1.25rem' }} />
+                            </div>
+                            <div>
+                              <p className={styles.childName}>{enfant.prenom} {enfant.nom}</p>
+                              <div className="flex items-center gap-2">
+                                <span className={styles.childGenderBadge}>
+                                  {isGirl ? 'Fille' : 'Garçon'}
+                                </span>
+                                <span className={styles.childAgeBadge}>
+                                  {enfant.age ? `${enfant.age} ans` : 'Âge non spécifié'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            {enfant.niveau && <div className={styles.childLevel}>{enfant.niveau}</div>}
+                          </div>
                         </div>
-                        <div>
-                          <p className={styles.childName}>{enfant.prenom} {enfant.nom}</p>
-                          <p className={styles.childAge}>{enfant.age ? `${enfant.age} ans` : 'Âge non spécifié'}</p>
-                        </div>
-                      </div>
-                      <div>
-                        {enfant.niveau && <div className={styles.childLevel}>{enfant.niveau}</div>}
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
                 </div>
               </div>
             )}

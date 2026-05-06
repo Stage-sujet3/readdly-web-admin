@@ -18,7 +18,11 @@ import {
   X,
   BookOpen,
   BookA,
-  FileText
+  FileText,
+  Activity,
+  Server,
+  History,
+  Star
 } from "lucide-react"
 import { useSidebar } from "@/contexts/SidebarContext"
 import { useAdminStats } from "@/hooks/useAdminStats"
@@ -39,12 +43,12 @@ export function Sidebar() {
     )
   }, [])
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     // Use authService for logout
-    authService.logout()
+    await authService.logout()
     
     // Redirect to login page
-    router.push('/login')
+    router.push('/auth')
   }, [router])
 
   const navItems = [
@@ -78,8 +82,26 @@ export function Sidebar() {
       ]
     },
     { 
+      path: "/dashboard/analytics/children", 
+      label: "Analytics Enfants", 
+      icon: Activity,
+      count: 0
+    },
+    { 
+      path: "/dashboard/monitoring", 
+      label: "Monitoring", 
+      icon: Server,
+      count: 0
+    },
+    { 
+      path: "/dashboard/audit", 
+      label: "Historique Admin", 
+      icon: History,
+      count: 0
+    },
+    { 
       path: "/dashboard/messages", 
-      label: "Messages", 
+      label: "Centre Feedback", 
       icon: MessageSquare,
       count: 0
     },

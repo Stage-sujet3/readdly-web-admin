@@ -4,6 +4,8 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Bell, User as UserIcon, Search, Command, CheckCircle2, AlertCircle, Info, Check } from "lucide-react"
 import { useNotifications, AppNotification } from "@/contexts/NotificationContext"
+import { authService } from "@/services/auth"
+import { ProfileModal } from "./ProfileModal"
 
 export function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
@@ -11,6 +13,10 @@ export function Header() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const pathname = usePathname()
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
+  
+  const user = authService.getCurrentUser()
+  const email = user?.email || "admin@admin.com"
+  const name = user?.name || "Administrateur"
 
   const getNotificationIcon = (type: string) => {
     switch(type) {
@@ -149,16 +155,25 @@ export function Header() {
 
           {/* User Profile - Simple Design */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#5f6ad8] to-[#444fc0] text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <button 
+              onClick={() => setIsProfileOpen(true)}
+              className="w-10 h-10 bg-gradient-to-br from-[#5f6ad8] to-[#444fc0] text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 hover:scale-105 transition-transform"
+            >
               <UserIcon className="w-5 h-5" />
-            </div>
+            </button>
             <div className="hidden sm:block">
-              <p className="text-sm font-bold text-[#1a2a4a] leading-tight">Administrateur</p>
-              <p className="text-xs font-medium text-slate-500">admin@admin.com</p>
+              <p className="text-sm font-bold text-[#1a2a4a] leading-tight">{name}</p>
+              <p className="text-xs font-medium text-slate-500">{email}</p>
             </div>
           </div>
         </div>
       </div>
+
+      <ProfileModal 
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        userEmail={email} 
+      />
     </header>
   )
 }

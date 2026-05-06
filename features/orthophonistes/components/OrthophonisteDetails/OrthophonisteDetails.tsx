@@ -1,12 +1,13 @@
+"use client";
 import React from "react";
 import { Sheet } from "@/components/ui/Sheet";
-import { 
-  Trash2, User, Mail, Phone, IdCard, UserCheck, 
-  MapPin, Calendar, CheckCheck, XCircle, Globe, 
-  FileCheck, Clock, Activity, ShieldCheck, AlertCircle, 
-  Baby, GraduationCap, Lock, Info
+import {
+  User, Mail, Phone, IdCard, MapPin, Calendar, CheckCheck,
+  XCircle, FileText, ShieldCheck, AlertCircle, Trash2,
+  Eye, Clock, CheckCircle2, Stethoscope, ImageOff, Globe
 } from "lucide-react";
-import { Orthophoniste } from "../../types";
+import { Orthophoniste, OrthophonisteFile } from "../../types";
+import { RejectModal } from "./RejectModal";
 import styles from "./OrthophonisteDetails.module.css";
 
 interface OrthophonisteDetailsProps {
@@ -14,227 +15,396 @@ interface OrthophonisteDetailsProps {
   setSelectedOrthophoniste: (orthophoniste: Orthophoniste | null) => void;
   setOrthophonisteToDelete: (orthophoniste: Orthophoniste) => void;
   getStatusDisplay: (orthophoniste: Orthophoniste) => { text: string; color: string };
+  showRejectModal: boolean;
+  setShowRejectModal: (v: boolean) => void;
+  isVerifying: boolean;
+  onVerify: (id: string) => void;
+  onReject: (id: string, reason: string) => void;
+}
+
+const FILE_TYPE_LABELS: Record<string, string> = {
+  CIN_RECTO: "CIN Recto",
+  CIN_VERSO: "CIN Verso",
+  ORTHO_DOC: "Diplôme / Doc",
+  VERIFICATION_PHOTO: "Photo Vérif.",
+  PROFILE_PHOTO: "Photo Profil",
+};
+
+const STATUS_STYLES: Record<string, { bg: string; color: string; border: string; dotColor: string }> = {
+  emerald: { bg: "#ecfdf5", color: "#047857", border: "#a7f3d0", dotColor: "#10b981" },
+  amber:   { bg: "#fffbeb", color: "#b45309", border: "#fde68a", dotColor: "#f59e0b" },
+  red:     { bg: "#fef2f2", color: "#b91c1c", border: "#fecaca", dotColor: "#ef4444" },
+  blue:    { bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", dotColor: "#3b82f6" },
+};
+
+function DocCard({ file }: { file: OrthophonisteFile }) {
+  const isImage = file.mimeType?.startsWith("image/") || ["jpg","jpeg","png","webp"].includes(file.extension?.toLowerCase());
+  const url = file.fullUrl || file.hostedUrl;
+
+  return (
+    <div className={styles.docCard}>
+      {isImage ? (
+        <img src={url} alt={FILE_TYPE_LABELS[file.fileType] || file.fileType} className={styles.docPreview} />
+      ) : (
+        <div className={styles.docPlaceholder}>
+          <FileText style={{ width: "28px", height: "28px", color: "#94a3b8" }} />
+          <span className={styles.docPlaceholderText}>{file.extension?.toUpperCase() || "DOC"}</span>
+        </div>
+      )}
+      <div className={styles.docFooter}>
+        <span className={styles.docLabel}>{FILE_TYPE_LABELS[file.fileType] || file.fileType}</span>
+        <a href={url} target="_blank" rel="noopener noreferrer" className={styles.docViewBtn}>
+          <Eye style={{ width: "10px", height: "10px" }} /> Voir
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function DocPlaceholder({ label }: { label: string }) {
+  return (
+    <div className={styles.docCard}>
+      <div className={styles.docPlaceholder}>
+        <ImageOff style={{ width: "24px", height: "24px", color: "#cbd5e1" }} />
+        <span className={styles.docPlaceholderText}>Non fourni</span>
+      </div>
+      <div className={styles.docFooter}>
+        <span className={styles.docLabel}>{label}</span>
+      </div>
+    </div>
+  );
 }
 
 export function OrthophonisteDetails({
   selectedOrthophoniste,
   setSelectedOrthophoniste,
   setOrthophonisteToDelete,
-  getStatusDisplay
+  getStatusDisplay,
+  showRejectModal,
+  setShowRejectModal,
+  isVerifying,
+  onVerify,
+  onReject,
 }: OrthophonisteDetailsProps) {
-  
   if (!selectedOrthophoniste) return null;
 
-  const fullName = selectedOrthophoniste.prenom && selectedOrthophoniste.nom ? 
-    `${selectedOrthophoniste.prenom} ${selectedOrthophoniste.nom}` : 
-    (selectedOrthophoniste as any).firstName && (selectedOrthophoniste as any).lastName ?
-      `${(selectedOrthophoniste as any).firstName} ${(selectedOrthophoniste as any).lastName}` :
-      (selectedOrthophoniste as any).name || selectedOrthophoniste.email || 'Orthophoniste';
+  const o = selectedOrthophoniste;
+  const fullName = (o.prenom && o.nom)
+    ? `${o.prenom} ${o.nom}`
+    : (o as any).firstName && (o as any).lastName
+      ? `${(o as any).firstName} ${(o as any).lastName}`
+      : o.email || "Orthophoniste";
 
-  const status = getStatusDisplay(selectedOrthophoniste);
-  let statusBadgeStyle = {};
-  if (status.color === 'emerald') {
-    statusBadgeStyle = { backgroundColor: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' };
-  } else if (status.color === 'blue') {
-    statusBadgeStyle = { backgroundColor: '#eff6ff', color: '#1d4ed8', borderColor: '#bfdbfe' };
-  } else if (status.color === 'amber') {
-    statusBadgeStyle = { backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fde68a' };
-  } else {
-    statusBadgeStyle = { backgroundColor: '#fef2f2', color: '#b91c1c', borderColor: '#fecaca' };
-  }
+  const status = getStatusDisplay(o);
+  const statusStyle = STATUS_STYLES[status.color] || STATUS_STYLES.amber;
+  
+  const orthophonisteId = o.idU || (o as any).id;
 
-  // Handle various patients formats from backend if they exist
-  const patients = selectedOrthophoniste.enfantsSuivis || (selectedOrthophoniste as any).patients || [];
+  // Profile photo
+  const profilePhotoFile = o.files?.find(f => f.fileType === "PROFILE_PHOTO");
+  const profilePhotoUrl = profilePhotoFile?.fullUrl || profilePhotoFile?.hostedUrl || (o.avatar?.startsWith('http') ? o.avatar : null);
+
+  // Document files
+  const getFile = (type: OrthophonisteFile["fileType"]) =>
+    o.files?.find(f => f.fileType === type);
+
+  const isVerified = o.verificationAdmin === "VERIFIED";
+  const isRejected = o.verificationAdmin === "REJECTED";
+
+  // Google Maps embed
+  const hasCoords = o.latitude != null && o.longitude != null;
+  const addressQuery = o.adresse ? encodeURIComponent(o.adresse) : '';
+  const mapsEmbedUrl = hasCoords
+    ? `https://www.google.com/maps?q=${o.latitude},${o.longitude}&output=embed&z=15`
+    : addressQuery
+      ? `https://www.google.com/maps?q=${addressQuery}&output=embed&z=15`
+      : null;
+
+  // Safe Date parsing
+  const safeDate = o.createdAt ? new Date(o.createdAt) : null;
+  const formattedDate = safeDate && !isNaN(safeDate.getTime())
+    ? safeDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+    : "Date invalide";
+
+  // Document Completeness
+  const hasCinRecto = !!getFile("CIN_RECTO");
+  const hasCinVerso = !!getFile("CIN_VERSO");
+  const hasDiplome = !!getFile("ORTHO_DOC");
+  const isDocsComplete = hasCinRecto && hasCinVerso && hasDiplome;
 
   return (
-    <Sheet open={!!selectedOrthophoniste} onOpenChange={(open) => !open && setSelectedOrthophoniste(null)} size="xl">
-      <div className={styles.drawerContainer}>
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <div className={styles.avatar}>
-              {fullName.substring(0, 2).toUpperCase()}
-            </div>
-            <div style={{ flex: 1 }}>
-              <h2 className={styles.name}>{fullName}</h2>
-              <p className={styles.email}>{selectedOrthophoniste.email}</p>
-              <div className={styles.badges}>
-                <span className={styles.roleBadge}>
-                  {selectedOrthophoniste.role}
-                </span>
-                <span className={styles.statusBadge} style={statusBadgeStyle}>
-                  {status.text}
-                </span>
+    <>
+      <Sheet open={!!selectedOrthophoniste} onOpenChange={(open) => !open && setSelectedOrthophoniste(null)} size="2xl">
+        <div className={styles.drawerContainer}>
+
+          {/* ── HERO HEADER ─────────────────────────── */}
+          <div className={styles.heroHeader}>
+            <div className={styles.heroRow}>
+              <div className={styles.avatarWrapper}>
+                {profilePhotoUrl ? (
+                  <img src={profilePhotoUrl} alt={fullName} className={styles.avatar} />
+                ) : (
+                  <div className={styles.avatarInitials}>
+                    {fullName.substring(0, 2).toUpperCase()}
+                  </div>
+                )}
+                {isVerified && <div className={styles.onlineIndicator} />}
+              </div>
+
+              <div className={styles.heroInfo}>
+                <h2 className={styles.heroName}>{fullName}</h2>
+                <p className={styles.heroEmail}>{o.email}</p>
+                <div className={styles.badgesRow}>
+                  <span className={styles.roleTag}>Orthophoniste</span>
+                  <span
+                    className={styles.statusBadge}
+                    style={{ background: statusStyle.bg, color: statusStyle.color, borderColor: statusStyle.border }}
+                  >
+                    <span className={styles.statusDot} style={{ background: statusStyle.dotColor }} />
+                    {status.text}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className={styles.content}>
-          <div className={styles.contentWrapper}>
-            
-            {/* Informations Personnelles */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>
-                <Info className={styles.titleIcon} />
-                Informations Personnelles
-              </h3>
-              <div className={styles.grid}>
-                
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><User className={styles.smallIcon} /> Nom Complet</div>
-                  <div className={styles.value}>{fullName}</div>
-                </div>
-
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><Phone className={styles.smallIcon} /> Téléphone</div>
-                  <div className={styles.value}>{selectedOrthophoniste.numTel || 'Non renseigné'}</div>
-                </div>
-
-                <div className={`${styles.infoGroup} ${styles.fullWidth}`}>
-                  <div className={styles.label}><Mail className={styles.smallIcon} /> Email</div>
-                  <div className={styles.value}>{selectedOrthophoniste.email}</div>
-                </div>
-
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><IdCard className={styles.smallIcon} /> CIN</div>
-                  <div className={styles.value}>{selectedOrthophoniste.cin || 'Non renseigné'}</div>
-                </div>
-
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><UserCheck className={styles.smallIcon} /> Genre</div>
-                  <div className={styles.value}>{selectedOrthophoniste.genre || 'Non renseigné'}</div>
-                </div>
-
-                <div className={`${styles.infoGroup} ${styles.fullWidth}`}>
-                  <div className={styles.label}><MapPin className={styles.smallIcon} /> Adresse Complète</div>
-                  <div className={styles.value}>{selectedOrthophoniste.adresse || 'Non renseignée'}</div>
-                </div>
-
-              </div>
+          {/* ── VERIFIED / REJECTED BANNER ───────────── */}
+          {isVerified && (
+            <div className={`${styles.resultBanner} ${styles.resultBannerVerified}`}>
+              <CheckCircle2 style={{ width: "18px", height: "18px", flexShrink: 0 }} />
+              Ce dossier a été validé — un email de confirmation a été envoyé à l'orthophoniste.
             </div>
-
-            {/* Compte & Sécurité */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>
-                <Lock className={styles.titleIcon} />
-                Compte & Sécurité
-              </h3>
-              <div className={styles.grid}>
-                
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><Calendar className={styles.smallIcon} /> Date de Création</div>
-                  <div className={styles.value}>
-                    {new Date(selectedOrthophoniste.dateCreation).toLocaleDateString('fr-FR', { 
-                      day: '2-digit', month: 'long', year: 'numeric' 
-                    })}
-                  </div>
-                </div>
-                
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><Mail className={styles.smallIcon} /> Email Vérifié</div>
-                  <div className={styles.value}>
-                    {selectedOrthophoniste.emailVerified ? (
-                      <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                        <CheckCheck style={{ width: '1.25rem', height: '1.25rem' }} /> Oui
-                      </span>
-                    ) : (
-                      <span style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                        <XCircle style={{ width: '1.25rem', height: '1.25rem' }} /> Non
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><Globe className={styles.smallIcon} /> Fournisseur Auth</div>
-                  <div className={styles.value} style={{ textTransform: 'capitalize' }}>{selectedOrthophoniste.authProvider}</div>
-                </div>
-
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><FileCheck className={styles.smallIcon} /> Profil Complété</div>
-                  <div className={styles.value}>
-                    {selectedOrthophoniste.isProfileCompleted ? (
-                      <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                        <CheckCheck style={{ width: '1.25rem', height: '1.25rem' }} /> Complété
-                      </span>
-                    ) : (
-                      <span style={{ color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                        <Clock style={{ width: '1.25rem', height: '1.25rem' }} /> En cours
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><Activity className={styles.smallIcon} /> Statut Initial</div>
-                  <div className={styles.value}>{selectedOrthophoniste.verificationStatus}</div>
-                </div>
-
-                <div className={styles.infoGroup}>
-                  <div className={styles.label}><ShieldCheck className={styles.smallIcon} /> Vérification Admin</div>
-                  <div className={styles.value}>
-                    {selectedOrthophoniste.verificationAdmin ? (
-                      <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                        <ShieldCheck style={{ width: '1.25rem', height: '1.25rem' }} /> Validé
-                      </span>
-                    ) : (
-                      <span style={{ color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                        <AlertCircle style={{ width: '1.25rem', height: '1.25rem' }} /> En attente
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-              </div>
+          )}
+          {isRejected && (
+            <div className={`${styles.resultBanner} ${styles.resultBannerRejected}`}>
+              <XCircle style={{ width: "18px", height: "18px", flexShrink: 0 }} />
+              Ce dossier a été rejeté — un email d'information a été envoyé à l'orthophoniste.
             </div>
-            
-            {/* Enfants / Patients */}
-            {patients.length > 0 && (
-              <div className={styles.section}>
-                <h3 className={styles.sectionTitle}>
-                  <Baby className={styles.titleIcon} style={{ color: '#3b82f6' }} />
-                  Patients Suivis ({patients.length})
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {patients.map((patient: any, index: number) => (
-                    <div key={index} className={styles.childCard}>
-                      <div className={styles.childNameBox}>
-                        <div className={styles.childIcon}>
-                          <Baby style={{ width: '1.25rem', height: '1.25rem' }} />
-                        </div>
-                        <div>
-                          <p className={styles.childName}>{patient.prenom} {patient.nom}</p>
-                          <p className={styles.childAge}>{patient.age ? `${patient.age} ans` : 'Âge non spécifié'}</p>
-                        </div>
-                      </div>
-                      <div>
-                        {patient.niveau && <div className={styles.childLevel}>{patient.niveau}</div>}
-                      </div>
+          )}
+
+          {/* ── SCROLLABLE BODY ──────────────────────── */}
+          <div className={styles.scrollBody}>
+
+            {/* ── 2-COL GRID: Infos perso + Compte ──── */}
+            <div className={styles.grid2col}>
+
+              {/* Col 1 — Informations personnelles */}
+              <div className={styles.card}>
+                <p className={styles.cardTitle}>
+                  <User className={styles.cardTitleIcon} /> Informations
+                </p>
+                <div className={styles.infoList}>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <Phone style={{ width: "14px", height: "14px", color: "#6366f1" }} />
                     </div>
-                  ))}
+                    <div>
+                      <p className={styles.infoLabel}>Téléphone</p>
+                      <p className={styles.infoValue}>{o.numTel || <span className={styles.infoValueMuted}>—</span>}</p>
+                    </div>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <IdCard style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                    </div>
+                    <div>
+                      <p className={styles.infoLabel}>CIN</p>
+                      <p className={styles.infoValue}>{o.cin || <span className={styles.infoValueMuted}>—</span>}</p>
+                    </div>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <User style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                    </div>
+                    <div>
+                      <p className={styles.infoLabel}>Genre</p>
+                      <p className={styles.infoValue}>{o.genre || <span className={styles.infoValueMuted}>—</span>}</p>
+                    </div>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <MapPin style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                    </div>
+                    <div>
+                      <p className={styles.infoLabel}>Adresse cabinet</p>
+                      <p className={styles.infoValue}>{o.adresse || <span className={styles.infoValueMuted}>—</span>}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        <div className={styles.footer}>
-          <button onClick={() => setSelectedOrthophoniste(null)} className={styles.btnClose}>
-            Fermer le tiroir
-          </button>
-          <button 
-            onClick={() => {
-              const orthophoniste = selectedOrthophoniste;
-              setSelectedOrthophoniste(null);
-              setOrthophonisteToDelete(orthophoniste);
-            }} 
-            className={styles.btnDelete}
-          >
-            <Trash2 style={{ width: '1rem', height: '1rem' }} />
-            Supprimer l'utilisateur
-          </button>
+              {/* Col 2 — Compte & Sécurité */}
+              <div className={styles.card}>
+                <p className={styles.cardTitle}>
+                  <ShieldCheck className={styles.cardTitleIcon} /> Compte
+                </p>
+                <div className={styles.infoList}>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <Calendar style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                    </div>
+                    <div>
+                      <p className={styles.infoLabel}>Inscription</p>
+                      <p className={styles.infoValue}>{formattedDate}</p>
+                    </div>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <Mail style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                    </div>
+                    <div>
+                      <p className={styles.infoLabel}>Email vérifié</p>
+                      <p className={styles.infoValue}>
+                        {o.emailVerified
+                          ? <span className={styles.boolTrue}><CheckCheck style={{ width: "14px", height: "14px" }} /> Oui</span>
+                          : <span className={styles.boolFalse}><XCircle style={{ width: "14px", height: "14px" }} /> Non</span>
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <Globe style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                    </div>
+                    <div>
+                      <p className={styles.infoLabel}>Auth</p>
+                      <p className={styles.infoValue} style={{ textTransform: 'capitalize' }}>{o.authProvider}</p>
+                    </div>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <Stethoscope style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                    </div>
+                    <div>
+                      <p className={styles.infoLabel}>Profil complété</p>
+                      <p className={styles.infoValue}>
+                        {o.isProfileCompleted
+                          ? <span className={styles.boolTrue}><CheckCheck style={{ width: "14px", height: "14px" }} /> Oui</span>
+                          : <span className={styles.boolFalse}><Clock style={{ width: "14px", height: "14px" }} /> Non</span>
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <div className={styles.infoIconWrap}>
+                      <FileText style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                    </div>
+                    <div>
+                      <p className={styles.infoLabel}>Dossier Documents</p>
+                      <p className={styles.infoValue}>
+                        {isDocsComplete
+                          ? <span className={styles.boolTrue}><CheckCheck style={{ width: "14px", height: "14px" }} /> Complet</span>
+                          : <span className={styles.boolFalse}><AlertCircle style={{ width: "14px", height: "14px" }} /> Incomplet</span>
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── DOCUMENTS ───────────────────────────── */}
+            <div className={styles.cardFull}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px', marginBottom: '14px' }}>
+                <p className={styles.cardTitle} style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+                  <FileText className={styles.cardTitleIcon} /> Documents soumis
+                </p>
+                {profilePhotoUrl && (
+                  <a href={profilePhotoUrl} target="_blank" rel="noopener noreferrer" className={styles.btnViewProfilePhoto}>
+                    <Eye style={{ width: "14px", height: "14px" }} /> Voir la photo de profil
+                  </a>
+                )}
+              </div>
+              <div className={styles.docsGrid}>
+                {getFile("CIN_RECTO")
+                  ? <DocCard file={getFile("CIN_RECTO")!} />
+                  : <DocPlaceholder label="CIN Recto" />}
+                {getFile("CIN_VERSO")
+                  ? <DocCard file={getFile("CIN_VERSO")!} />
+                  : <DocPlaceholder label="CIN Verso" />}
+                {getFile("ORTHO_DOC")
+                  ? <DocCard file={getFile("ORTHO_DOC")!} />
+                  : <DocPlaceholder label="Diplôme / Doc" />}
+              </div>
+            </div>
+
+            {/* ── GOOGLE MAPS ─────────────────────────── */}
+            <div className={styles.cardFull}>
+              <p className={styles.cardTitle}>
+                <MapPin className={styles.cardTitleIcon} /> Localisation du cabinet
+              </p>
+              <div className={styles.mapContainer}>
+                {mapsEmbedUrl ? (
+                  <iframe
+                    className={styles.mapIframe}
+                    title="Localisation cabinet"
+                    src={mapsEmbedUrl}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                ) : (
+                  <div className={styles.mapPlaceholder}>
+                    <MapPin style={{ width: "36px", height: "36px", color: "#cbd5e1" }} />
+                    <p className={styles.mapPlaceholderText}>
+                      {o.adresse || "Localisation non renseignée"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>{/* end scrollBody */}
+
+          {/* ── ACTION BAR ──────────────────────────── */}
+          <div className={styles.actionBar}>
+            <button
+              className={styles.btnAccept}
+              disabled={isVerified || isVerifying}
+              onClick={() => onVerify(orthophonisteId)}
+              title={isVerified ? "Déjà validé" : "Valider ce dossier"}
+            >
+              {isVerifying
+                ? <><span className={styles.spinner} /> Validation...</>
+                : <><CheckCircle2 style={{ width: "18px", height: "18px" }} /> Accepter</>
+              }
+            </button>
+
+            {!isVerified && (
+              <button
+                className={styles.btnReject}
+                disabled={isRejected || isVerifying}
+                onClick={() => setShowRejectModal(true)}
+                title={isRejected ? "Déjà rejeté" : "Rejeter ce dossier"}
+              >
+                <XCircle style={{ width: "18px", height: "18px" }} /> Rejeter
+              </button>
+            )}
+
+            <button
+              className={styles.btnDelete}
+              onClick={() => {
+                setSelectedOrthophoniste(null);
+                setOrthophonisteToDelete(o);
+              }}
+              title="Supprimer ce compte"
+            >
+              <Trash2 style={{ width: "14px", height: "14px" }} />
+            </button>
+          </div>
+
         </div>
-      </div>
-    </Sheet>
+      </Sheet>
+
+      {/* ── REJECT MODAL ────────────────────────── */}
+      {showRejectModal && (
+        <RejectModal
+          orthophonisteNom={fullName}
+          onConfirm={(reason) => onReject(orthophonisteId, reason)}
+          onCancel={() => setShowRejectModal(false)}
+          isLoading={isVerifying}
+        />
+      )}
+    </>
   );
 }

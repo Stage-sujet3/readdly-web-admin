@@ -1,6 +1,7 @@
 export interface ActivityPoint {
   date: string;
   count: number;
+  duration: number;
 }
 
 export interface ActivityDistribution {
@@ -17,6 +18,12 @@ export interface FeatureTime {
 export interface HeatmapPoint {
   hour: number;
   count: number;
+  day?: number;
+}
+
+export interface ChildTimePoint {
+  id: string;
+  avgTime: number;
 }
 
 export interface AnalyticsData {
@@ -32,4 +39,10 @@ export interface AnalyticsData {
   distribution: ActivityDistribution[];
   timePerFeature: FeatureTime[];
   heatmap: HeatmapPoint[];
+  timeByChild: ChildTimePoint[];
+  insights?: string[];
+  healthScore?: number;
+  activeToday?: number;
 }
+
+

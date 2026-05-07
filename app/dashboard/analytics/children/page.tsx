@@ -1,311 +1,430 @@
 "use client"
-import { useState, useEffect } from "react"
-
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, BarChart, Bar
+import { cloneElement, useEffect, useRef, useState } from 'react'
+import type { ReactElement } from 'react'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
 } from 'recharts'
-import { Baby, BookOpen, Scan, Image, Clock, TrendingUp, Activity, LibraryBig, Zap, Star, Award, Users } from "lucide-react"
-import { motion } from "framer-motion"
+import {
+  Baby,
+  BookOpen,
+  Scan,
+  LibraryBig,
+  Clock,
+  FileText,
+  RefreshCcw,
+  Image as ImageIcon,
+  TrendingUp,
+  Activity,
+  Lightbulb,
+  Target,
+} from "lucide-react"
+import { useAnalytics } from '@/features/analytics/hooks/useAnalytics'
 
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
-const MOCK_DATA = {
-  totalEnfants: 156,
-  storiesRead: 428,
-  scannedTexts: 89,
-  imagesGenerated: 145,
-  educationalTexts: 34,
-  dictionaryUses: 134,
+const FEATURE_LABELS: Record<string, string> = {
+  STORY: 'Histoires',
+  TEXT: 'Textes éducatifs',
+  SCAN: 'Scans',
+  DICT: 'Dictionnaire',
+  IMAGE: 'Images',
+  IMPORT: 'Imports',
+  AI: 'Assistant IA',
+}
+
+const FAKE_DATA = {
+  totalEnfants: 24,
+  storiesRead: 142,
+  scannedTexts: 56,
+  imagesGenerated: 34,
+  educationalTexts: 89,
+  dictionaryUses: 45,
+  avgSessionTime: 650, 
   totalAppTime: 45600,
-  avgSessionTime: 600,
+  activeToday: 8,
+  healthScore: 92,
   dailyActivity: [
-    { date: new Date(Date.now() - 6 * 86400000).toISOString(), count: 45 },
-    { date: new Date(Date.now() - 5 * 86400000).toISOString(), count: 52 },
-    { date: new Date(Date.now() - 4 * 86400000).toISOString(), count: 38 },
-    { date: new Date(Date.now() - 3 * 86400000).toISOString(), count: 65 },
-    { date: new Date(Date.now() - 2 * 86400000).toISOString(), count: 48 },
-    { date: new Date(Date.now() - 1 * 86400000).toISOString(), count: 59 },
-    { date: new Date().toISOString(), count: 72 },
+    { date: '01/05', count: 12, duration: 3600 },
+    { date: '02/05', count: 18, duration: 5400 },
+    { date: '03/05', count: 15, duration: 4500 },
+    { date: '04/05', count: 22, duration: 6600 },
+    { date: '05/05', count: 30, duration: 9000 },
+    { date: '06/05', count: 25, duration: 7500 },
+    { date: '07/05', count: 10, duration: 3000 },
   ],
-  heatmap: Array.from({ length: 24 }, (_, i) => ({
-    hour: i,
-    count: Math.floor(Math.random() * 50) + (i > 8 && i < 20 ? 30 : 5)
-  })),
   distribution: [
-    { name: "Histoires", value: 40 },
-    { name: "Scans", value: 25 },
-    { name: "Dictionnaire", value: 15 },
-    { name: "Images", value: 10 },
-    { name: "AI Chat", value: 10 },
+    { name: 'STORY', value: 45 },
+    { name: 'TEXT', value: 30 },
+    { name: 'SCAN', value: 15 },
+    { name: 'DICT', value: 10 },
   ],
   timePerFeature: [
-    { feature: "Histoires", totalTime: 12000, avgTime: 280 },
-    { feature: "Dictionnaire", totalTime: 8500, avgTime: 65 },
-    { feature: "Scans", totalTime: 5400, avgTime: 120 },
-    { feature: "AI Interaction", totalTime: 3200, avgTime: 45 },
+    { feature: 'STORY', totalTime: 18000, avgTime: 600 },
+    { feature: 'TEXT', totalTime: 12000, avgTime: 400 },
+    { feature: 'SCAN', totalTime: 8000, avgTime: 300 },
+  ],
+  heatmap: Array.from({ length: 24 }, (_, i) => ({ hour: i, count: Math.floor(Math.random() * 10) })),
+  timeByChild: [],
+  insights: [
+    "L'activité globale est stable. Prévoyez de nouvelles histoires pour stimuler l'engagement.",
+    "Le temps moyen par session est de 10 minutes. C'est un bon indicateur de concentration.",
+    "Relancer les 4 enfants par notification push à 18h."
   ]
 };
 
-export default function ChildrenAnalyticsPage() {
-  const [loading, setLoading] = useState(true);
-  const data = MOCK_DATA;
+function SafeChartContainer({
+  children,
+  height = 320,
+}: {
+  children: ReactElement
+  height?: number
+}) {
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const [width, setWidth] = useState(0)
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+    const element = rootRef.current
+    if (!element) return
+
+    const update = () => {
+      const next = Math.floor(element.getBoundingClientRect().width)
+      if (next > 0) setWidth(next)
+    }
+
+    update()
+    const observer = new ResizeObserver(() => update())
+    observer.observe(element)
+    window.addEventListener('resize', update)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  const canRender = width > 10
+
+  return (
+    <div ref={rootRef} className="relative w-full min-w-0 overflow-hidden rounded-2xl" style={{ height, minHeight: 260 }}>
+      {canRender ? (
+        cloneElement(children, {
+          width,
+          height,
+        } as any)
+      ) : (
+        <div className="h-full w-full rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
+          Chargement du graphique...
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function ChildrenAnalyticsPage() {
+  const { data: realData, loading, error, refresh } = useAnalytics()
+  
+  // Use fake data only if real data is empty (totalEnfants === 0)
+  const isFake = realData && realData.totalEnfants === 0
+  const data = isFake ? FAKE_DATA : realData
 
   if (loading) {
     return (
       <div className="p-8 space-y-8 animate-pulse">
-        <div className="space-y-2">
-          <div className="h-10 bg-slate-200 rounded-xl w-64"></div>
-          <div className="h-4 bg-slate-100 rounded-lg w-96"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-100 h-32">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-100 rounded-2xl"></div>
-                <div className="space-y-2 flex-1">
-                  <div className="h-3 bg-slate-100 rounded w-16"></div>
-                  <div className="h-6 bg-slate-200 rounded w-12"></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 h-[450px]">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-slate-100 rounded-xl"></div>
-                <div className="h-6 bg-slate-200 rounded-lg w-48"></div>
-              </div>
-              <div className="w-full h-64 bg-slate-50 rounded-[2rem]"></div>
-            </div>
+        <div className="h-10 bg-slate-200 rounded-xl w-72" />
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-6">
+          {[...Array(7)].map((_, i) => (
+            <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 h-32" />
           ))}
         </div>
       </div>
-    );
+    )
   }
 
-  // Dynamic Insights Calculation
-  const distribution = data?.distribution || [];
-  const sortedDistribution = [...distribution].sort((a, b) => b.value - a.value);
-  const topFunction = sortedDistribution[0]?.name || "N/A";
-  const totalActivity = (data?.dailyActivity || []).reduce((acc, curr) => acc + (curr?.count || 0), 0);
+  if (error || !data) {
+    return (
+      <div className="p-8">
+        <div className="bg-white border border-red-100 rounded-3xl p-8">
+          <h2 className="text-2xl font-bold text-slate-900">Analytics indisponibles</h2>
+          <p className="text-slate-500 mt-2">{error || "Aucune donnée analytics réelle reçue."}</p>
+          <button
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-900 text-white px-4 py-2"
+            onClick={refresh}
+          >
+            <RefreshCcw size={16} />
+            Réessayer
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const totalInteractions = (data.dailyActivity || []).reduce((sum, item) => sum + (item.count || 0), 0)
+  const avgMinutesPerSession = Math.max(0, Math.round((data.avgSessionTime || 0) / 60))
+  const totalHours = ((data.totalAppTime || 0) / 3600).toFixed(1)
+  const topFeature = (data.timePerFeature || []).slice().sort((a, b: any) => b.totalTime - a.totalTime)[0]
+  const peakHour = (data.heatmap || []).slice().sort((a, b: any) => b.count - a.count)[0]
+
+  const minuteTrend = (data.dailyActivity || []).map((p) => ({
+    date: p.date,
+    minutes: Math.round((p.duration || 0) / 60),
+  }))
+
+  const usagePie = (data.distribution || []).map((d) => ({
+    ...d,
+    label: FEATURE_LABELS[d.name] || d.name,
+    value: d.value || 0,
+  }))
+  const featureTimes = (data.timePerFeature || []).map((item) => ({
+    ...item,
+    feature: FEATURE_LABELS[item.feature] || item.feature,
+  }))
+
+  const smartInsights = [
+    {
+      icon: TrendingUp,
+      title: "Croissance hebdomadaire",
+      text:
+        totalInteractions > 0
+          ? `Vous avez ${totalInteractions} interactions sur la période. Continuez avec des campagnes ciblées sur les jours les plus actifs.`
+          : "Aucune interaction récente détectée. Renforcez les notifications et contenus d’entrée.",
+    },
+    {
+      icon: Target,
+      title: "Optimisation du temps",
+      text:
+        avgMinutesPerSession >= 8
+          ? `Temps moyen élevé (${avgMinutesPerSession} min/session). Priorité: améliorer la rétention avec des parcours progressifs.`
+          : `Temps moyen faible (${avgMinutesPerSession} min/session). Action: réduire friction onboarding et ajouter des objectifs rapides.`,
+    },
+    {
+      icon: Lightbulb,
+      title: "Action recommandée",
+      text: topFeature
+        ? `La fonctionnalité dominante est "${topFeature.feature}" (${Math.round(topFeature.totalTime / 60)} min). Ajoutez des ponts vers les autres fonctionnalités pour équilibrer l’usage.`
+        : "Les usages sont encore faibles. Lancez un plan d’activation multi-fonctionnalités.",
+    },
+  ]
 
   const kpis = [
-    { label: "Enfants inscrits", value: data.totalEnfants, icon: Baby, color: "text-indigo-500", gradient: "from-indigo-500/20 to-indigo-500/5" },
-    { label: "Histoires lues", value: data.storiesRead, icon: BookOpen, color: "text-emerald-500", gradient: "from-emerald-500/20 to-emerald-500/5" },
-    { label: "Textes scannés", value: data.scannedTexts, icon: Scan, color: "text-amber-500", gradient: "from-amber-500/20 to-amber-500/5" },
-    { label: "Dictionnaire", value: data.dictionaryUses || 0, icon: LibraryBig, color: "text-purple-500", gradient: "from-purple-500/20 to-purple-500/5" },
-    { label: "Temps total", value: `${Math.round((data.totalAppTime || 0) / 60)} min`, icon: Clock, color: "text-sky-500", gradient: "from-sky-500/20 to-sky-500/5" },
-  ];
+    { label: "Enfants inscrits", value: data.totalEnfants, icon: Baby },
+    { label: "Histoires lues", value: data.storiesRead, icon: BookOpen },
+    { label: "Textes éducatifs lus", value: data.educationalTexts, icon: FileText },
+    { label: "Textes scannés", value: data.scannedTexts, icon: Scan },
+    { label: "Images générées", value: data.imagesGenerated || 0, icon: ImageIcon },
+    { label: "Dictionnaire", value: data.dictionaryUses || 0, icon: LibraryBig },
+    { label: "Temps total", value: `${totalHours} h`, icon: Clock },
+  ]
 
   return (
     <div className="p-8 space-y-8 bg-[#f8fafc] min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-end">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-black text-[#1a2a4a] tracking-tight mb-2">Analytics Enfants</h1>
-          <p className="text-slate-500 font-medium">Vue d'ensemble détaillée de l'activité, de l'engagement et des comportements</p>
+          <h1 className="text-4xl font-black text-[#1a2a4a] tracking-tight">
+            Analytics Enfants
+            {isFake && (
+              <span className="ml-4 text-[10px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full uppercase tracking-widest font-black border border-amber-200">
+                Simulation
+              </span>
+            )}
+          </h1>
+          <p className="text-slate-500 font-medium">
+            {isFake ? "Affichage des données de test" : "Données réelles synchronisées avec le backend"}
+          </p>
         </div>
+        <button
+          className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-4 py-2 text-slate-700"
+          onClick={refresh}
+        >
+          <RefreshCcw size={16} />
+          Actualiser
+        </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-6">
         {kpis.map((kpi, i) => (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            key={i} 
-            className="bg-white/80 backdrop-blur-xl p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group"
-          >
-            <div className={`w-12 h-12 bg-gradient-to-br ${kpi.gradient} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm`}>
-              <kpi.icon className={`w-6 h-6 ${kpi.color}`} />
+          <div key={i} className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3">
+              <kpi.icon size={20} />
             </div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{kpi.label}</p>
             <p className="text-3xl font-black text-[#1a2a4a] mt-1">{kpi.value}</p>
-          </motion.div>
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Activity Chart */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-              <h3 className="text-lg font-bold text-[#1a2a4a]">Activité Quotidienne (7 derniers jours)</h3>
-            </div>
-          </div>
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+          <h3 className="text-lg font-bold text-[#1a2a4a] mb-6">Activité quotidienne (actions)</h3>
+          {(data.dailyActivity || []).length > 0 ? (
+            <SafeChartContainer height={320}>
               <AreaChart data={data.dailyActivity || []}>
                 <defs>
-                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                  <linearGradient id="countFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
-                  dy={10}
-                  tickFormatter={(val) => new Date(val).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}
-                />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
                 <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  itemStyle={{ fontWeight: 'bold' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="count" 
-                  name="Interactions" 
-                  stroke="#6366f1" 
-                  strokeWidth={4} 
-                  fillOpacity={1} 
-                  fill="url(#colorCount)"
-                  isAnimationActive={true}
-                />
+                <Tooltip />
+                <Area type="monotone" dataKey="count" name={isFake ? "Données Test" : "Interactions"} stroke="#6366f1" strokeWidth={3} fill="url(#countFill)" />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+            </SafeChartContainer>
+          ) : (
+            <div className="h-[320px] rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
+              Aucune activité disponible
+            </div>
+          )}
         </div>
 
-        {/* Heatmap (Last 30 Days) */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-rose-500/20 to-rose-500/5 text-rose-600 rounded-xl flex items-center justify-center shadow-sm">
-                <Clock className="w-5 h-5" />
-              </div>
-              <h3 className="text-lg font-bold text-[#1a2a4a]">Heatmap (Horaire / 30j)</h3>
-            </div>
-          </div>
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.heatmap || []}>
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+          <h3 className="text-lg font-bold text-[#1a2a4a] mb-6">Temps quotidien (minutes)</h3>
+          {minuteTrend.length > 0 ? (
+            <SafeChartContainer height={320}>
+              <LineChart data={minuteTrend}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="hour" 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} 
-                  tickFormatter={(h) => `${h}h`} 
-                />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
                 <YAxis hide />
-                <Tooltip cursor={{ fill: 'rgba(236, 72, 153, 0.05)' }} contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                <Bar dataKey="count" name="Activités" fill="#ec4899" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                <Tooltip />
+                <Line type="monotone" dataKey="minutes" name="Minutes" stroke="#10b981" strokeWidth={3} dot={{ r: 3 }} />
+              </LineChart>
+            </SafeChartContainer>
+          ) : (
+            <div className="h-[320px] rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
+              Aucune donnée minutes disponible
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Usage Distribution */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-          <h3 className="text-lg font-bold text-[#1a2a4a] mb-8">Répartition des Activités</h3>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm xl:col-span-2">
+          <h3 className="text-lg font-bold text-[#1a2a4a] mb-6">Usage par fonctionnalité (temps)</h3>
+          {featureTimes.length > 0 ? (
+            <SafeChartContainer height={340}>
+              <BarChart data={featureTimes} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                <XAxis type="number" hide />
+                <YAxis dataKey="feature" type="category" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
+                <Tooltip />
+                <Bar dataKey="totalTime" name="Temps (s)" fill="#10b981" radius={[0, 8, 8, 0]} />
+              </BarChart>
+            </SafeChartContainer>
+          ) : (
+            <div className="h-[340px] rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
+              Aucune donnée de fonctionnalité disponible
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+          <h3 className="text-lg font-bold text-[#1a2a4a] mb-6">Répartition des usages</h3>
+          {usagePie.length > 0 ? (
+            <SafeChartContainer height={340}>
               <PieChart>
                 <Pie
-                  data={data.distribution || []}
+                  data={usagePie}
+                  dataKey="value"
+                  nameKey="label"
                   cx="50%"
                   cy="50%"
-                  innerRadius={80}
-                  outerRadius={110}
-                  paddingAngle={8}
-                  dataKey="value"
+                  innerRadius={65}
+                  outerRadius={105}
+                  paddingAngle={4}
                 >
-                  {(data.distribution || []).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                  {usagePie.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip 
-                  contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                />
+                <Tooltip />
               </PieChart>
-            </ResponsiveContainer>
+            </SafeChartContainer>
+          ) : (
+            <div className="h-[340px] rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
+              Aucune répartition disponible
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+          <h3 className="text-lg font-bold text-[#1a2a4a] mb-6">Heatmap horaire (activité)</h3>
+          {(data.heatmap || []).length > 0 ? (
+            <SafeChartContainer height={320}>
+              <BarChart data={data.heatmap || []}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="hour" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
+                <YAxis hide />
+                <Tooltip />
+                <Bar dataKey="count" name="Activités" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </SafeChartContainer>
+          ) : (
+            <div className="h-[320px] rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
+              Aucune heatmap disponible
+            </div>
+          )}
+        </div>
+
+        <div className="bg-[#1a2a4a] text-white p-8 rounded-3xl shadow-sm">
+          <div className="flex items-center gap-2 mb-5">
+            <Activity size={20} className="text-indigo-300" />
+            <h3 className="text-xl font-bold">Système intelligent</h3>
           </div>
-          <div className="grid grid-cols-3 gap-4 mt-8">
-            {(data.distribution || []).map((entry, index) => (
-              <div key={entry.name} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                <span className="text-xs font-bold text-slate-600 capitalize">{entry.name}</span>
+          <div className="space-y-4">
+            <div className="bg-white/10 rounded-2xl p-4">
+              <p className="text-indigo-200 text-xs uppercase tracking-widest">Pic d&apos;utilisation</p>
+              <p className="text-lg font-bold mt-1">
+                {peakHour ? `${peakHour.hour}h (${peakHour.count} actions)` : "Aucune donnée"}
+              </p>
+            </div>
+            {smartInsights.map((insight, index) => (
+              <div key={index} className="bg-white/10 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <insight.icon size={16} className="text-indigo-300" />
+                  <p className="font-semibold">{insight.title}</p>
+                </div>
+                <p className="text-sm text-slate-100">{insight.text}</p>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Funnel / Time Per Feature */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-          <h3 className="text-lg font-bold text-[#1a2a4a] mb-8">Temps passé par Fonctionnalité (Secondes)</h3>
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.timePerFeature || []} layout="vertical" margin={{ left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                <XAxis type="number" hide />
-                <YAxis dataKey="feature" type="category" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
-                <Tooltip cursor={{ fill: 'rgba(16, 185, 129, 0.05)' }} contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                <Bar dataKey="totalTime" name="Temps (secondes)" fill="#10b981" radius={[0, 4, 4, 0]} barSize={24}>
-                  {
-                    (data.timePerFeature || []).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[(index + 1) % COLORS.length]} />
-                    ))
-                  }
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
       </div>
 
-      {/* Insights */}
-      <div className="bg-[#1a2a4a] text-white p-10 rounded-[3rem] shadow-xl relative overflow-hidden group mt-12">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-indigo-300" />
-            </div>
-            <h3 className="text-2xl font-black italic tracking-tight">Smart Insights</h3>
+      <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+        <h3 className="text-lg font-bold text-[#1a2a4a] mb-4">Plan d’action admin recommandé</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-slate-100 p-4 bg-slate-50">
+            <p className="text-xs uppercase text-slate-500">Activation</p>
+            <p className="font-semibold text-slate-900 mt-1">Relancer les comptes peu actifs</p>
+            <p className="text-sm text-slate-600 mt-1">Cibler les heures creuses avec rappels personnalisés.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white/10 backdrop-blur-md p-8 rounded-[2rem] border border-white/10 group-hover:bg-white/15 transition-all">
-              <p className="text-indigo-300 text-xs font-black uppercase tracking-widest mb-3">Performance Hebdomadaire</p>
-              <p className="text-lg font-bold leading-relaxed">
-                L'activité globale est de <span className="text-emerald-400">{totalActivity}</span> événements. 
-                La fonction <span className="text-indigo-400 capitalize">{topFunction.toLowerCase()}</span> est le moteur principal avec <span className="text-indigo-300">{sortedDistribution[0]?.value || 0}</span> interactions.
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md p-8 rounded-[2rem] border border-white/10 group-hover:bg-white/15 transition-all">
-              <p className="text-indigo-300 text-xs font-black uppercase tracking-widest mb-3">Recommandation Data</p>
-              <p className="text-lg font-bold leading-relaxed">
-                Le temps moyen par session est de <span className="text-amber-400">{Math.round(data.avgSessionTime / 60)} min</span>. 
-                {data.storiesRead > data.scannedTexts 
-                  ? "Focus sur les nouvelles histoires interactives." 
-                  : "Encouragez l'utilisation de l'OCR pour la lecture physique."}
-              </p>
-            </div>
+          <div className="rounded-2xl border border-slate-100 p-4 bg-slate-50">
+            <p className="text-xs uppercase text-slate-500">Rétention</p>
+            <p className="font-semibold text-slate-900 mt-1">Augmenter la durée moyenne</p>
+            <p className="text-sm text-slate-600 mt-1">Créer des parcours progressifs pour dépasser {avgMinutesPerSession} min/session.</p>
+          </div>
+          <div className="rounded-2xl border border-slate-100 p-4 bg-slate-50">
+            <p className="text-xs uppercase text-slate-500">Diversification</p>
+            <p className="font-semibold text-slate-900 mt-1">Équilibrer les fonctionnalités</p>
+            <p className="text-sm text-slate-600 mt-1">Proposer du cross-usage depuis la feature dominante vers scan/dictionnaire.</p>
           </div>
         </div>
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-indigo-500 rounded-full blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity"></div>
-        <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-pink-500 rounded-full blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity"></div>
       </div>
     </div>
-  );
+  )
 }
-

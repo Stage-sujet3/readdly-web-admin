@@ -19,6 +19,8 @@ export interface AdminStats {
   weeklyActivity: { day: string; activities: number }[]
   verifiedOrthophonistes: number
   pendingOrthophonistes: number
+  totalMessages: number
+  totalRatings: number
 }
 
 export function useAdminStats() {

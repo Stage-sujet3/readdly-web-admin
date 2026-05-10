@@ -78,15 +78,19 @@ export function Header() {
           <div className="relative">
             <button 
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-              className="relative p-3 bg-white/60 hover:bg-white/80 rounded-2xl shadow-sm border border-white/60 transition-all group"
+              className="relative flex items-center gap-2 p-3 bg-white/60 hover:bg-white/80 rounded-2xl shadow-sm border border-white/60 transition-all group"
             >
-              <Bell className="w-5 h-5 text-slate-500 group-hover:text-[#5f6ad8] transition-colors" />
+              <Bell className={`w-5 h-5 transition-colors ${unreadCount > 0 ? 'text-[#5f6ad8]' : 'text-slate-500 group-hover:text-[#5f6ad8]'}`} />
               
-              {/* Notification Badge */}
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 border-2 border-white rounded-full shadow-lg flex items-center justify-center animate-pulse">
-                  <span className="text-[10px] font-bold text-white">{unreadCount}</span>
+                <span className="text-xs font-bold text-[#5f6ad8] pr-1">
+                  +{unreadCount} notification{unreadCount > 1 ? 's' : ''}
                 </span>
+              )}
+
+              {/* Notification dot */}
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full" />
               )}
             </button>
 

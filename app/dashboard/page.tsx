@@ -1,4 +1,5 @@
 import { StatsGrid } from "@/features/dashboard/components/StatsGrid"
+import { EngagementStats } from "@/features/dashboard/components/EngagementStats"
 import { ChartsSection } from "@/features/dashboard/components/ChartsSection"
 import { LibraryChartsSection } from "@/features/dashboard/components/LibraryChartsSection"
 import { ActivitySection } from "@/features/dashboard/components/ActivitySection"
@@ -7,6 +8,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <StatsGrid />
+      <EngagementStats />
       <ChartsSection />
       <ActivitySection />
       <LibraryChartsSection />

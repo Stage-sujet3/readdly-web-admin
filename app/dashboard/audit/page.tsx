@@ -98,14 +98,23 @@ export default function AuditPage() {
                   <div className="p-8 space-y-6">
                     <div>
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Description</label>
-                      <p className="text-slate-700 font-bold text-lg leading-snug">{selectedLog.description}</p>
+                      <p className="text-slate-700 font-bold text-lg leading-snug">
+                        {selectedLog.description.includes('Suppression de l\'utilisateur') 
+                          ? selectedLog.description.split('Suppression de l\'utilisateur ')[1]?.split(' (')[0] || selectedLog.description
+                          : selectedLog.description.includes('Nouvel utilisateur créé:')
+                          ? selectedLog.description.split('Nouvel utilisateur créé: ')[1]?.split(' (')[0] || selectedLog.description
+                          : selectedLog.description.includes('DELETE on USER')
+                          ? 'Suppression utilisateur'
+                          : selectedLog.description
+                        }
+                      </p>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                       <div>
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Cible</label>
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
                           <Tag className="w-4 h-4 text-indigo-400" />
-                          {selectedLog.targetType} (#{selectedLog.targetId})
+                          {selectedLog.targetType}
                         </div>
                       </div>
                       <div>
@@ -117,10 +126,14 @@ export default function AuditPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Métadonnées (JSON)</label>
-                      <pre className="bg-slate-900 text-indigo-300 p-6 rounded-2xl text-xs font-mono overflow-x-auto">
-                        {JSON.stringify(JSON.parse(selectedLog.metadata || '{}'), null, 2)}
-                      </pre>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Informations supplémentaires</label>
+                      <div className="bg-slate-50 p-4 rounded-2xl text-sm text-slate-600">
+                        {selectedLog.metadata && JSON.parse(selectedLog.metadata).query 
+                          ? typeof JSON.parse(selectedLog.metadata).query === 'object' && JSON.parse(selectedLog.metadata).query !== null
+                            ? 'Recherche avec filtres appliqués'
+                            : `Recherche: ${JSON.parse(selectedLog.metadata).query}`
+                          : 'Aucune information supplémentaire'}
+                      </div>
                     </div>
                   </div>
                   <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">

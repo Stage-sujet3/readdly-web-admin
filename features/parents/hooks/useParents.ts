@@ -95,9 +95,10 @@ export function useParents() {
     setIsFetching(true);
     try {
       const response = await getParentWithChildren(parent.idU);
-      if (response.data) {
-        const raw = response.data?.data || response.data;
-        const detailedParent = normalizeParent({ ...raw, role: 'PARENT' });
+      if (response.data?.success) {
+        const enfants = response.data.data;
+        // Update the parent with the fetched enfants
+        const detailedParent = { ...parent, enfants, enfantCount: enfants?.length || 0 };
         setSelectedParent(detailedParent);
         setParents(prev => prev.map(p => p.idU === detailedParent.idU ? detailedParent : p));
       }
@@ -110,12 +111,27 @@ export function useParents() {
 
   const fetchParentChildren = async (parentId: string): Promise<Parent | null> => {
     try {
+      console.log("Fetching children for parent:", parentId);
       const response = await getParentWithChildren(parentId);
-      if (response.data) {
-        const raw = response.data?.data || response.data;
-        const detailedParent = normalizeParent({ ...raw, role: 'PARENT' });
-        setParents(prev => prev.map(p => p.idU === detailedParent.idU ? detailedParent : p));
-        return detailedParent;
+      console.log("Response:", response.data);
+      if (response.data?.success) {
+        const enfants = response.data.data;
+        console.log("Enfants:", enfants);
+        // Update the parent with the fetched enfants
+        let updatedParent: Parent | null = null;
+        setParents(prev => {
+          const updated = prev.map(p => {
+            if (p.idU === parentId) {
+              updatedParent = { ...p, enfants, enfantCount: enfants?.length || 0 };
+              return updatedParent;
+            }
+            return p;
+          });
+          return updated;
+        });
+        return updatedParent;
+      } else {
+        console.log("Response not successful:", response.data);
       }
     } catch (error) {
       console.error("Failed to fetch parent children:", error);

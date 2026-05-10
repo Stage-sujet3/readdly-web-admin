@@ -63,7 +63,8 @@ export function ChildrenDrawer({ isOpen, onClose, parentName, children }: Childr
             <div className="flex-1 overflow-y-auto p-8 space-y-6">
               {children.length > 0 ? (
                 children.map((child, i) => {
-                  const isGirl = child.genre?.toLowerCase() === 'female' || child.genre?.toLowerCase() === 'fille' || child.genre?.toLowerCase() === 'f';
+                  const genre = (child.genre || '').toLowerCase();
+                  const isGirl = genre === 'female' || genre === 'fille' || genre === 'f' || genre === 'girl' || genre === 'feminine';
                   const themeColor = isGirl ? 'pink' : 'blue';
                   const bgColor = isGirl ? 'bg-pink-50' : 'bg-blue-50';
                   const textColor = isGirl ? 'text-pink-600' : 'text-blue-600';
@@ -88,7 +89,7 @@ export function ChildrenDrawer({ isOpen, onClose, parentName, children }: Childr
                           </h3>
                           <div className="flex items-center gap-2">
                             <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${isGirl ? 'bg-pink-200 text-pink-700' : 'bg-blue-200 text-blue-700'}`}>
-                              {child.genre === 'F' || child.genre?.toLowerCase() === 'female' || child.genre?.toLowerCase() === 'fille' ? 'Fille' : 'Garçon'}
+                              {isGirl ? 'Fille' : 'Garçon'}
                             </span>
                             <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${isGirl ? 'bg-pink-200 text-pink-700' : 'bg-blue-200 text-blue-700'}`}>
                               {child.age || '?'} ans

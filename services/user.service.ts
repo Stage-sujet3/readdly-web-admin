@@ -5,8 +5,8 @@ export const getUser = (id: string) => api.get(`/users/${id}`)
 
 export const getUserWithChildren = (id: string) => api.get(`/users/${id}?include=enfants`)
 
-// Calls user-service REST directly (port 3001) — returns full user with enfants[]
-export const getParentWithChildren = (id: string) => userServiceApi.get(`/users/${id}`)
+// Calls user-service REST directly (port 3001) — returns enfants for a parent
+export const getParentWithChildren = (id: string) => userServiceApi.get(`/users/${id}/enfants`)
 
 export const getParentEnfants = (id: string) => api.get(`/admin/parents/${id}/enfants`)
 

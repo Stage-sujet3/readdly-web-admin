@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  MessageSquare, AlertTriangle, ThumbsUp, Clock, CheckCircle2,
-  User, Mail, Tag, Calendar, ChevronLeft, ChevronRight,
+  MessageSquare, AlertTriangle, Clock,
+  User, ChevronLeft, ChevronRight,
   Send, X, Eye, Filter, Inbox, AlertCircle, ArrowRight,
-  Image as ImageIcon, ListOrdered, Layers, Zap, Search,
-  Star, TrendingUp, Award, Users, BarChart2, Heart, Lightbulb, Rocket,
-  Settings, Monitor, Layout
+  Image as ImageIcon, Layers, Zap, Search,
+  Star, TrendingUp, Award, Users, BarChart2,
+  Settings
 } from "lucide-react"
 import { messagesService } from "@/services/messages.service"
 
@@ -50,137 +50,154 @@ interface RatingsSummary {
   distribution: Record<number, number>
 }
 
-const TYPE_CONFIG: Record<MessageType, { label: string; color: string; icon: any; gradient: string; bg: string; border: string }> = {
-  PROBLEM: { label: "Problème", color: "text-rose-500", icon: AlertTriangle, gradient: "from-rose-500/20 to-rose-500/5", bg: "bg-rose-50", border: "border-rose-100" },
-  FEEDBACK: { label: "Feedback", color: "text-indigo-500", icon: MessageSquare, gradient: "from-indigo-500/20 to-indigo-500/5", bg: "bg-indigo-50", border: "border-indigo-100" },
+const TYPE_CONFIG: Record<MessageType, { label: string; color: string; icon: any; bg: string; border: string }> = {
+  PROBLEM: { label: "Problème", color: "text-slate-700", icon: AlertTriangle, bg: "bg-slate-100", border: "border-slate-200" },
+  FEEDBACK: { label: "Feedback", color: "text-slate-700", icon: MessageSquare, bg: "bg-slate-100", border: "border-slate-200" },
 }
 
 const STATUS_CONFIG: Record<MessageStatus, { label: string; color: string; dot: string }> = {
-  OPEN: { label: "Ouvert", color: "text-amber-600 bg-amber-50 border-amber-200", dot: "bg-amber-400" },
-  IN_PROGRESS: { label: "En cours", color: "text-blue-600 bg-blue-50 border-blue-200", dot: "bg-blue-400" },
-  RESOLVED: { label: "Résolu", color: "text-emerald-600 bg-emerald-50 border-emerald-200", dot: "bg-emerald-400" },
+  OPEN: { label: "Ouvert", color: "text-slate-700 bg-white border-slate-200", dot: "bg-slate-400" },
+  IN_PROGRESS: { label: "En cours", color: "text-blue-700 bg-blue-50 border-blue-200", dot: "bg-blue-500" },
+  RESOLVED: { label: "Résolu", color: "text-emerald-700 bg-emerald-50 border-emerald-200", dot: "bg-emerald-500" },
 }
 
-const PRIORITY_CONFIG: Record<string, { label: string; color: string; icon: any; gradient: string }> = {
-  HIGH: { label: "Haute", color: "text-rose-600", icon: Zap, gradient: "from-rose-500/20 to-rose-500/5" },
-  MEDIUM: { label: "Moyenne", color: "text-amber-600", icon: Clock, gradient: "from-amber-500/20 to-amber-500/5" },
-  LOW: { label: "Faible", color: "text-slate-600", icon: Filter, gradient: "from-slate-500/20 to-slate-500/5" },
+const PRIORITY_CONFIG: Record<string, { label: string; color: string; icon: any; bg: string }> = {
+  HIGH: { label: "Haute", color: "text-slate-700", icon: Zap, bg: "bg-slate-100" },
+  MEDIUM: { label: "Moyenne", color: "text-slate-600", icon: Clock, bg: "bg-slate-100" },
+  LOW: { label: "Faible", color: "text-slate-500", icon: Filter, bg: "bg-slate-100" },
 }
 
-const FEATURE_CONFIG: Record<string, { label: string; icon: any; color: string; gradient: string; bg: string }> = {
-  STORY: { label: "Histoires", icon: Inbox, color: "text-indigo-500", gradient: "from-indigo-500/20 to-indigo-500/5", bg: "bg-indigo-50" },
-  TEXT: { label: "Textes Éducatifs", icon: MessageSquare, color: "text-blue-500", gradient: "from-blue-500/20 to-blue-500/5", bg: "bg-blue-50" },
-  DICT: { label: "Dictionnaire", icon: BookMarkedIcon, color: "text-emerald-500", gradient: "from-emerald-500/20 to-emerald-500/5", bg: "bg-emerald-50" },
-  IMAGE: { label: "Génération Image", icon: ImageIcon, color: "text-rose-500", gradient: "from-rose-500/20 to-rose-500/5", bg: "bg-rose-50" },
-  AI: { label: "Intelligence Artificielle", icon: BrainIcon, color: "text-amber-500", gradient: "from-amber-500/20 to-amber-500/5", bg: "bg-amber-50" },
-  DESIGN: { label: "Design Enfant", icon: PaletteIcon, color: "text-pink-500", gradient: "from-pink-500/20 to-pink-500/5", bg: "bg-pink-50" },
+const FEATURE_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
+  STORY: { label: "Histoires", icon: Inbox, color: "text-indigo-600", bg: "bg-indigo-50" },
+  TEXT: { label: "Textes Éducatifs", icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
+  DICT: { label: "Dictionnaire", icon: Layers, color: "text-amber-600", bg: "bg-amber-50" },
+  SCAN: { label: "Scan de Texte", icon: Search, color: "text-emerald-600", bg: "bg-emerald-50" },
+  FILE_IMPORT: { label: "Import de Fichier", icon: ArrowRight, color: "text-slate-600", bg: "bg-slate-100" },
+  AI_ASSISTANT: { label: "Assistant Intelligent", icon: Zap, color: "text-purple-600", bg: "bg-purple-50" },
+  IMAGE_GEN: { label: "Génération d'Images", icon: ImageIcon, color: "text-pink-600", bg: "bg-pink-50" },
+  AUDIO: { label: "Audio & Prononciation", icon: MessageSquare, color: "text-cyan-600", bg: "bg-cyan-50" },
+  CHILD_UI: { label: "Interface Enfant", icon: Users, color: "text-orange-600", bg: "bg-orange-50" },
+  PARENT_DASHBOARD: { label: "Dashboard Parent", icon: BarChart2, color: "text-indigo-600", bg: "bg-indigo-50" },
+  PROFILE: { label: "Profil & Compte", icon: User, color: "text-slate-600", bg: "bg-slate-100" },
+  AUTH: { label: "Authentification", icon: AlertCircle, color: "text-red-600", bg: "bg-red-50" },
+  NOTIFICATIONS: { label: "Notifications & Emails", icon: AlertCircle, color: "text-yellow-600", bg: "bg-yellow-50" },
+  ANALYTICS: { label: "Analytics & Statistiques", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
+  GENERAL: { label: "Général", icon: Settings, color: "text-slate-600", bg: "bg-slate-100" },
+  DESIGN: { label: "Design", icon: Layers, color: "text-purple-600", bg: "bg-purple-50" },
 }
 
-function BookMarkedIcon(props: any) { return <Layers {...props} /> }
-function BrainIcon(props: any) { return <Zap {...props} /> }
-function PaletteIcon(props: any) { return <Layout {...props} /> }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  BUG: "Bug technique", PERFORMANCE: "Performance", UI: "Interface", AI: "Intelligence Artificielle", OTHER: "Autre",
+  BUG_TECHNIQUE: "Bug technique",
+  PERFORMANCE: "Problème de performance",
+  INTERFACE_DESIGN: "Interface / Design",
+  RESEAU_SYNC: "Réseau / Synchronisation",
+  EXPERIENCE_ENFANT: "Expérience enfant",
+  OTHER: "Autre",
 }
 
-// ── Mock Data ───────────────────────────────────────────────────────────────
+const EMPTY_RATINGS_SUMMARY: RatingsSummary = {
+  globalAverage: 0,
+  totalVotes: 0,
+  topFeature: "",
+  byFeature: {},
+  distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+}
 
-const MOCK_MESSAGES: Message[] = [
-  {
-    id: "m-1",
-    senderType: "PARENT",
-    senderName: "Sarah Mansour",
-    senderEmail: "sarah.m@gmail.com",
-    type: "PROBLEM",
-    subject: "Erreur lors du scan de l'histoire",
-    description: "Je n'arrive pas à scanner le livre 'Le Petit Prince'. L'application affiche une erreur 'OCR Failed' après 10 secondes de chargement. J'ai essayé avec plusieurs éclairages différents mais le problème persiste.",
-    status: "OPEN",
-    priority: "HIGH",
-    createdAt: new Date().toISOString(),
-    problemDetails: {
-      category: "BUG",
-      feature: "SCAN",
-      steps: ["Ouvrir KidsSpace", "Cliquer sur Scanner", "Prendre la photo", "Attendre le traitement"],
-      deviceInfo: { model: "iPhone 13", os: "iOS 16.5" }
-    },
-    attachments: [
-      { id: "att-1", fileUrl: "https://images.unsplash.com/photo-1544640808-32ca72ac7f37?w=800", fileType: "IMAGE" }
-    ]
-  },
-  {
-    id: "m-2",
-    senderType: "ORTHOPHONISTE",
-    senderName: "Dr. Ahmed Ben Ali",
-    senderEmail: "ahmed.ortho@clinique.tn",
-    type: "FEEDBACK",
-    subject: "Suggestion pour le dictionnaire",
-    description: "L'outil est excellent pour mes patients. J'aimerais pouvoir ajouter mes propres mots personnalisés dans un dictionnaire privé pour chaque enfant. Cela permettrait de travailler sur des besoins spécifiques.",
-    status: "IN_PROGRESS",
-    priority: "MEDIUM",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    feedbackDetails: {
-      likedFeatures: ["Dictionnaire visuel", "Prononciation AI"],
-      suggestions: "Ajouter une section 'Favoris' pour les mots difficiles.",
-      futureNeeds: "Partage de rapports avec les parents via l'app."
-    }
-  },
-  {
-    id: "m-3",
-    senderType: "PARENT",
-    senderName: "Yassine Dridi",
-    senderEmail: "yassine.d@outlook.com",
-    type: "PROBLEM",
-    subject: "Lenteur de la génération d'image",
-    description: "La génération d'images pour les histoires personnalisées prend parfois plus de 30 secondes, ce qui décourage mon fils de 6 ans.",
-    status: "RESOLVED",
-    priority: "LOW",
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    adminReply: "Bonjour Yassine, nous avons optimisé nos serveurs GPU. La génération devrait maintenant prendre moins de 10 secondes.",
-    repliedAt: new Date(Date.now() - 86400000).toISOString(),
-    problemDetails: {
-      category: "PERFORMANCE",
-      feature: "IMAGE",
-      steps: ["Créer une histoire", "Cliquer sur 'Générer visuels'"],
-      deviceInfo: { model: "Samsung S22", os: "Android 13" }
-    }
-  },
-  {
-    id: "m-4",
-    senderType: "PARENT",
-    senderName: "Leila Ferjani",
-    senderEmail: "leila.f@yahoo.fr",
-    type: "FEEDBACK",
-    subject: "Félicitations pour le design",
-    description: "Mon enfant adore l'interface KidsSpace ! Les couleurs et les animations sont parfaites. C'est le premier outil qui lui donne vraiment envie de lire.",
-    status: "OPEN",
-    priority: "LOW",
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    feedbackDetails: {
-      likedFeatures: ["Design Enfant", "Gamification", "Histoires Magiques"],
-      suggestions: "Plus de thèmes de couleurs pour personnaliser l'espace."
-    }
+const TYPE_MAP: Record<number, MessageType> = { 0: "PROBLEM", 1: "FEEDBACK" }
+const STATUS_MAP: Record<number, MessageStatus> = { 0: "OPEN", 1: "IN_PROGRESS", 2: "RESOLVED" }
+const PRIORITY_MAP: Record<number, string> = { 0: "LOW", 1: "MEDIUM", 2: "HIGH" }
+const SENDER_TYPE_MAP: Record<number, string> = { 0: "PARENT", 1: "ORTHOPHONISTE" }
+const PROBLEM_CATEGORY_MAP: Record<number, string> = {
+  0: "BUG_TECHNIQUE", 1: "PERFORMANCE", 2: "INTERFACE_DESIGN",
+  3: "RESEAU_SYNC", 4: "EXPERIENCE_ENFANT", 5: "OTHER",
+}
+const PROBLEM_FEATURE_MAP: Record<number, string> = {
+  0: "STORY", 1: "TEXT", 2: "DICT", 3: "SCAN",
+  4: "FILE_IMPORT", 5: "AI_ASSISTANT", 6: "IMAGE_GEN",
+  7: "AUDIO", 8: "CHILD_UI", 9: "PARENT_DASHBOARD",
+  10: "PROFILE", 11: "AUTH", 12: "NOTIFICATIONS",
+  13: "ANALYTICS", 14: "GENERAL",
+}
+const parseDeviceInfo = (value: any) => {
+  if (!value) return undefined
+  if (typeof value !== "string") return value
+  try {
+    return JSON.parse(value)
+  } catch {
+    return undefined
   }
-]
-
-const MOCK_STATS = {
-  total: 42,
-  open: 12,
-  problems: 25,
-  feedbacks: 17
 }
 
-const MOCK_RATINGS_SUMMARY: RatingsSummary = {
-  globalAverage: 4.6,
-  totalVotes: 128,
-  topFeature: "STORY",
-  byFeature: {
-    STORY: { average: 4.8, count: 45, distribution: { 5: 35, 4: 8, 3: 2, 2: 0, 1: 0 } },
-    AI: { average: 4.5, count: 32, distribution: { 5: 20, 4: 8, 3: 3, 2: 1, 1: 0 } },
-    DICT: { average: 4.2, count: 28, distribution: { 5: 12, 4: 10, 3: 4, 2: 2, 1: 0 } },
-    IMAGE: { average: 4.7, count: 23, distribution: { 5: 18, 4: 4, 3: 1, 2: 0, 1: 0 } }
-  },
-  distribution: { 5: 85, 4: 25, 3: 10, 2: 5, 1: 3 }
+const normalizeMessage = (raw: any): Message | null => {
+  if (!raw) return null
+  const type = typeof raw.type === "number" ? TYPE_MAP[raw.type] : raw.type
+  const status = typeof raw.status === "number" ? STATUS_MAP[raw.status] : raw.status
+  const priority = typeof raw.priority === "number" ? PRIORITY_MAP[raw.priority] : raw.priority
+  const senderType = typeof raw.senderType === "number" ? SENDER_TYPE_MAP[raw.senderType] : raw.senderType
+
+  if (!type || !status) return null
+
+  // Ensure attachments is always an array of { id, fileUrl, fileType, fileName }
+  const rawAttachments = Array.isArray(raw.attachments) ? raw.attachments : []
+  const attachments = rawAttachments.map((att: any, idx: number) => ({
+    id: att.id || String(idx),
+    fileUrl: att.fileUrl || att.url || "",
+    fileType: att.fileType || "IMAGE",
+    fileName: att.fileName || `Attachement ${idx + 1}`
+  })).filter((att: any) => att.fileUrl)
+
+  return {
+    id: String(raw.id),
+    senderType: senderType || "PARENT",
+    senderEmail: String(raw.senderEmail || ""),
+    senderName: String(raw.senderName || "Utilisateur"),
+    type,
+    subject: String(raw.subject || "Sans objet"),
+    description: String(raw.description || ""),
+    status,
+    priority: String(priority || "MEDIUM"),
+    adminReply: raw.adminReply || undefined,
+    repliedAt: raw.repliedAt || undefined,
+    createdAt: raw.createdAt || new Date().toISOString(),
+    problemDetails: raw.problemDetails
+      ? {
+          category:
+            typeof raw.problemDetails.category === "number"
+              ? PROBLEM_CATEGORY_MAP[raw.problemDetails.category]
+              : raw.problemDetails.category,
+          feature:
+            typeof raw.problemDetails.feature === "number"
+              ? PROBLEM_FEATURE_MAP[raw.problemDetails.feature]
+              : raw.problemDetails.feature,
+          steps: Array.isArray(raw.problemDetails.steps) ? raw.problemDetails.steps : [],
+          deviceInfo: parseDeviceInfo(raw.problemDetails.deviceInfo),
+        }
+      : undefined,
+    feedbackDetails: raw.feedbackDetails
+      ? {
+          likedFeatures: Array.isArray(raw.feedbackDetails.likedFeatures)
+            ? raw.feedbackDetails.likedFeatures
+            : [],
+          suggestions: raw.feedbackDetails.suggestions || undefined,
+          futureNeeds: raw.feedbackDetails.futureNeeds || undefined,
+        }
+      : undefined,
+    attachments,
+  }
+}
+
+const normalizeRatingsSummary = (raw: any): RatingsSummary => {
+  if (!raw) return EMPTY_RATINGS_SUMMARY
+
+  // The gateway now provides normalized data
+  return {
+    globalAverage: Number(raw.globalAverage || 0),
+    totalVotes: Number(raw.totalVotes || 0),
+    topFeature: String(raw.topFeature || ""),
+    byFeature: raw.byFeature || {},
+    distribution: raw.distribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+  }
 }
 
 export default function FeedbackUnifiedPage() {
@@ -211,28 +228,30 @@ export default function FeedbackUnifiedPage() {
         messagesService.getMessages({ type: msgTab === "ALL" ? undefined : msgTab, page, limit: 12 }),
         messagesService.getMessageStats(),
       ])
-      
-      let fetchedMessages = msgRes.data?.success ? msgRes.data.data.messages : []
-      let fetchedStats = statsRes.data?.success ? statsRes.data.data : null
 
-      // Fallback to MOCK data if empty (for demonstration)
-      if (fetchedMessages.length === 0 && page === 1) {
-        fetchedMessages = MOCK_MESSAGES.filter(m => msgTab === "ALL" || m.type === msgTab)
-      }
-      if (!fetchedStats || fetchedStats.total === 0) {
-        fetchedStats = MOCK_STATS
-      }
+      const rawMessages = msgRes.data?.success ? (msgRes.data?.data?.messages || []) : []
+      const normalizedMessages = rawMessages
+        .map((m: any) => normalizeMessage(m))
+        .filter((m: Message | null): m is Message => Boolean(m))
 
-      setMessages(fetchedMessages || [])
-      setTotal(msgRes.data?.data?.total || fetchedMessages.length)
-      setPages(msgRes.data?.data?.pages || 1)
+      const fetchedStats = statsRes.data?.success ? statsRes.data.data : null
+      const apiTotal = Number(msgRes.data?.data?.total ?? normalizedMessages.length)
+      const apiLimit = Number(msgRes.data?.data?.limit ?? 12)
+      const apiPages = Number(
+        msgRes.data?.data?.pages ??
+          (apiTotal > 0 ? Math.ceil(apiTotal / Math.max(apiLimit, 1)) : 1),
+      )
+
+      setMessages(normalizedMessages)
+      setTotal(apiTotal)
+      setPages(Math.max(apiPages, 1))
       setStats(fetchedStats)
-      
     } catch (err) { 
       console.error(err)
-      // Fallback on error
-      setMessages(MOCK_MESSAGES.filter(m => msgTab === "ALL" || m.type === msgTab))
-      setStats(MOCK_STATS)
+      setMessages([])
+      setTotal(0)
+      setPages(1)
+      setStats(null)
     }
     finally { setIsLoadingMessages(false) }
   }, [msgTab, page])
@@ -241,14 +260,12 @@ export default function FeedbackUnifiedPage() {
     setIsLoadingRatings(true)
     try {
       const res = await messagesService.getRatingsSummary()
-      if (res.data?.success && res.data.data.totalVotes > 0) {
-        setRatingsSummary(res.data.data)
-      } else {
-        setRatingsSummary(MOCK_RATINGS_SUMMARY)
-      }
+      if (res.data?.success) {
+        setRatingsSummary(normalizeRatingsSummary(res.data.data))
+      } else setRatingsSummary(EMPTY_RATINGS_SUMMARY)
     } catch (err) { 
       console.error(err)
-      setRatingsSummary(MOCK_RATINGS_SUMMARY)
+      setRatingsSummary(EMPTY_RATINGS_SUMMARY)
     }
     finally { setIsLoadingRatings(false) }
   }, [])
@@ -322,19 +339,19 @@ export default function FeedbackUnifiedPage() {
             {stats && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 {[
-                  { label: "Total messages", value: stats.total, icon: Inbox, color: "text-indigo-500", gradient: "from-indigo-500/20 to-indigo-500/5" },
-                  { label: "Ouverts", value: stats.open, icon: AlertCircle, color: "text-amber-500", gradient: "from-amber-500/20 to-amber-500/5" },
-                  { label: "Problèmes", value: stats.problems, icon: AlertTriangle, color: "text-rose-500", gradient: "from-rose-500/20 to-rose-500/5" },
-                  { label: "Feedbacks", value: stats.feedbacks, icon: MessageSquare, color: "text-emerald-500", gradient: "from-emerald-500/20 to-emerald-500/5" },
+                  { label: "Total messages", value: stats.total, icon: Inbox },
+                  { label: "Ouverts", value: stats.open, icon: AlertCircle },
+                  { label: "Problèmes", value: stats.problems, icon: AlertTriangle },
+                  { label: "Feedbacks", value: stats.feedbacks, icon: MessageSquare },
                 ].map((s, i) => (
                   <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.08 }}
-                    className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${s.gradient} rounded-2xl flex items-center justify-center mb-4 shadow-sm`}>
-                      <s.icon className={`w-6 h-6 ${s.color}`} />
+                    className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                    <div className={`w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-4`}>
+                      <s.icon className={`w-5 h-5 text-slate-600`} />
                     </div>
-                    <p className="text-3xl font-black text-[#1a2a4a]">{s.value}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{s.label}</p>
+                    <p className="text-3xl font-bold text-slate-800">{s.value}</p>
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">{s.label}</p>
                   </motion.div>
                 ))}
               </div>
@@ -387,10 +404,10 @@ export default function FeedbackUnifiedPage() {
                       return (
                         <motion.div key={msg.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.04 }}
-                          className="flex items-center gap-5 px-6 py-5 hover:bg-slate-50/50 transition-colors group cursor-pointer"
+                          className="flex items-center gap-5 px-6 py-5 hover:bg-slate-50 transition-colors group cursor-pointer border-b border-slate-100"
                           onClick={() => { setSelected(msg); setReplyText("") }}>
-                          <div className={`w-11 h-11 flex-shrink-0 bg-gradient-to-br ${TYPE_CONFIG[msg.type].gradient} ${TYPE_CONFIG[msg.type].border} border rounded-2xl flex items-center justify-center`}>
-                            <TypeIcon className={`w-5 h-5 ${TYPE_CONFIG[msg.type].color}`} />
+                          <div className={`w-11 h-11 flex-shrink-0 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center`}>
+                            <TypeIcon className={`w-5 h-5 text-slate-600`} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -459,20 +476,20 @@ export default function FeedbackUnifiedPage() {
                 {/* KPI Cards for Ratings */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   {[
-                    { label: "Moyenne Globale", value: ratingsSummary?.globalAverage.toFixed(1) || "0.0", sub: "sur 5 étoiles", icon: Star, color: "text-amber-500", gradient: "from-amber-500/20 to-amber-500/5" },
-                    { label: "Total Évaluations", value: ratingsSummary?.totalVotes || 0, sub: "votes reçus", icon: Users, color: "text-indigo-500", gradient: "from-indigo-500/20 to-indigo-500/5" },
-                    { label: "Top Feature", value: ratingsSummary?.topFeature ? (FEATURE_CONFIG[ratingsSummary.topFeature]?.label || ratingsSummary.topFeature) : "—", sub: "Meilleur score", icon: Award, color: "text-emerald-500", gradient: "from-emerald-500/20 to-emerald-500/5" },
+                    { label: "Moyenne Globale", value: ratingsSummary?.globalAverage.toFixed(1) || "0.0", sub: "sur 5 étoiles", icon: Star },
+                    { label: "Total Évaluations", value: ratingsSummary?.totalVotes || 0, sub: "votes reçus", icon: Users },
+                    { label: "Top Feature", value: ratingsSummary?.topFeature ? (FEATURE_CONFIG[ratingsSummary.topFeature]?.label || ratingsSummary.topFeature) : "—", sub: "Meilleur score", icon: Award },
                   ].map((kpi, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex items-start gap-5 hover:shadow-lg transition-all">
-                      <div className={`w-14 h-14 flex-shrink-0 bg-gradient-to-br ${kpi.gradient} rounded-2xl flex items-center justify-center shadow-sm`}>
-                        <kpi.icon className={`w-7 h-7 ${kpi.color}`} />
+                      className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-start gap-4">
+                      <div className="w-12 h-12 flex-shrink-0 bg-slate-100 rounded-xl flex items-center justify-center">
+                        <kpi.icon className="w-6 h-6 text-slate-600" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{kpi.label}</p>
-                        <p className="text-3xl font-black text-[#1a2a4a] mb-1">{kpi.value}</p>
-                        <p className="text-xs text-slate-400 font-medium">{kpi.sub}</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">{kpi.label}</p>
+                        <p className="text-2xl font-bold text-slate-800 mb-0.5">{kpi.value}</p>
+                        <p className="text-xs text-slate-400">{kpi.sub}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -489,26 +506,27 @@ export default function FeedbackUnifiedPage() {
                 </h2>
                 <div className="space-y-6">
                   {ratingsSummary?.byFeature && Object.entries(ratingsSummary.byFeature).map(([feature, data], i) => {
-                    const cfg = FEATURE_CONFIG[feature] || { label: feature, gradient: "from-slate-400 to-slate-500", color: "text-slate-600", bg: "bg-slate-50", icon: Layout }
+                    const cfg = FEATURE_CONFIG[feature] || { label: feature, color: "text-slate-600", bg: "bg-slate-100", icon: Settings }
                     return (
                       <div key={feature}>
                         <div className="flex justify-between items-center mb-2">
                           <div className="flex items-center gap-2">
-                            <div className={`w-9 h-9 bg-gradient-to-br ${cfg.gradient} rounded-xl flex items-center justify-center`}>
-                              <cfg.icon className={`w-4.5 h-4.5 ${cfg.color}`} />
+                            <div className={`w-9 h-9 ${cfg.bg} rounded-lg flex items-center justify-center`}>
+                              <cfg.icon className={`w-4 h-4 ${cfg.color}`} />
                             </div>
-                            <span className="text-sm font-bold text-slate-700">{cfg.label}</span>
+                            <span className="text-sm font-semibold text-slate-700">{cfg.label}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-slate-400 mr-2">{data.count} votes</span>
                             <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                            <span className="text-sm font-black text-[#1a2a4a]">{data.average.toFixed(1)}</span>
+                            <span className="text-sm font-bold text-slate-800">{(data.average || 0).toFixed(1)}</span>
                           </div>
                         </div>
-                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                           <motion.div 
                             initial={{ width: 0 }}
-                            animate={{ width: `${(data.average / 5) * 100}%` }}
-                            className={`h-full bg-gradient-to-r ${cfg.gradient}`}
+                            animate={{ width: `${((data.average || 0) / 5) * 100}%` }}
+                            className="h-full bg-indigo-500 rounded-full"
                           />
                         </div>
                       </div>
@@ -555,11 +573,11 @@ export default function FeedbackUnifiedPage() {
                     <div className="space-y-3">
                       {ratingsSummary && ratingsSummary.globalAverage >= 4 ? (
                         <p className="text-sm font-medium text-slate-700 leading-relaxed">
-                          La satisfaction globale est excellente. Les parents apprécient particulièrement les <span className="text-indigo-600 font-bold">Histoires</span>.
+                          La satisfaction globale est excellente. Les parents apprécient particulièrement {ratingsSummary.topFeature ? <span className="text-indigo-600 font-bold">{FEATURE_CONFIG[ratingsSummary.topFeature]?.label || ratingsSummary.topFeature}</span> : "l'application"}.
                         </p>
                       ) : (
                         <p className="text-sm font-medium text-slate-700 leading-relaxed">
-                          Des opportunités d'amélioration existent pour les fonctionnalités AI et Dictionnaire.
+                          Des opportunités d'amélioration existent pour certaines fonctionnalités. Continuez à recueillir des avis pour cibler les priorités.
                         </p>
                       )}
                     </div>
@@ -582,17 +600,17 @@ export default function FeedbackUnifiedPage() {
               transition={{ type: "spring", damping: 28, stiffness: 250 }}
               className="fixed right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl z-[101] flex flex-col">
               
-              <div className={`p-8 border-b border-slate-100 ${TYPE_CONFIG[selected.type].bg}`}>
+              <div className={`p-8 border-b border-slate-200 bg-slate-50`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${TYPE_CONFIG[selected.type].gradient} ${TYPE_CONFIG[selected.type].border} border-2 rounded-2xl flex items-center justify-center shadow-sm`}>
-                      {React.createElement(TYPE_CONFIG[selected.type].icon, { className: `w-6 h-6 ${TYPE_CONFIG[selected.type].color}` })}
+                    <div className={`w-12 h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm`}>
+                      {React.createElement(TYPE_CONFIG[selected.type].icon, { className: `w-6 h-6 text-slate-600` })}
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                         {TYPE_CONFIG[selected.type].label} • {selected.senderType}
                       </p>
-                      <h2 className="text-xl font-black text-[#1a2a4a] leading-tight">{selected.subject}</h2>
+                      <h2 className="text-xl font-bold text-slate-800 leading-tight">{selected.subject}</h2>
                     </div>
                   </div>
                   <button onClick={() => { setSelected(null); setReplyText("") }}
@@ -629,54 +647,66 @@ export default function FeedbackUnifiedPage() {
                 </section>
 
                 {selected.type === "PROBLEM" && selected.problemDetails && (
-                  <section className="bg-rose-50/50 rounded-[2rem] p-8 border border-rose-100">
-                    <h3 className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-6 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-rose-500/20 to-rose-500/5 rounded-lg flex items-center justify-center">
-                        <AlertTriangle className="w-4 h-4 text-rose-500" />
-                      </div> 
+                  <section className="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-slate-400" />
                       Diagnostic Technique
                     </h3>
                     <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
-                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Catégorie</p>
-                        <p className="text-sm font-bold text-slate-800">{CATEGORY_LABELS[selected.problemDetails.category]}</p>
+                      <div className="bg-white p-4 rounded-lg border border-slate-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Catégorie</p>
+                        <p className="text-sm font-semibold text-slate-700">{CATEGORY_LABELS[selected.problemDetails.category] || selected.problemDetails.category}</p>
                       </div>
-                      <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
-                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Feature</p>
-                        <p className="text-sm font-bold text-slate-800">{selected.problemDetails.feature}</p>
+                      <div className="bg-white p-4 rounded-lg border border-slate-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Fonctionnalité</p>
+                        <p className="text-sm font-semibold text-slate-700">{FEATURE_CONFIG[selected.problemDetails.feature]?.label || selected.problemDetails.feature}</p>
                       </div>
                     </div>
                     {selected.problemDetails.steps?.length > 0 && (
-                      <div className="space-y-3">
-                        {selected.problemDetails.steps.map((step, i) => (
-                          <div key={i} className="flex gap-4">
-                            <div className="w-6 h-6 flex-shrink-0 bg-rose-500 text-white rounded-lg flex items-center justify-center text-[10px] font-black">
-                              {i + 1}
+                      <div className="mb-6">
+                        <p className="text-[9px] font-black text-slate-400 uppercase mb-3">Étapes pour reproduire</p>
+                        <div className="space-y-3">
+                          {selected.problemDetails.steps.map((step, i) => (
+                            <div key={i} className="flex gap-4">
+                              <div className="w-6 h-6 flex-shrink-0 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center text-xs font-bold border border-indigo-100">
+                                {i + 1}
+                              </div>
+                              <p className="text-sm text-slate-700 pt-0.5">{step}</p>
                             </div>
-                            <p className="text-sm font-medium text-slate-600">{step}</p>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selected.problemDetails.deviceInfo && (
+                      <div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase mb-3">Informations Appareil</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {Object.entries(selected.problemDetails.deviceInfo).map(([key, val]) => (
+                            <div key={key} className="bg-white/50 p-2 rounded border border-slate-100">
+                              <p className="text-[8px] font-bold text-slate-400 uppercase">{key}</p>
+                              <p className="text-[10px] font-medium text-slate-600 truncate">{String(val)}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </section>
                 )}
 
                 {selected.type === "FEEDBACK" && selected.feedbackDetails && (
-                  <section className="bg-indigo-50/50 rounded-[2rem] p-8 border border-indigo-100">
-                    <h3 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-6 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 rounded-lg flex items-center justify-center">
-                        <Heart className="w-4 h-4 text-indigo-500" />
-                      </div> 
+                  <section className="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-slate-400" />
                       Retours Utilisateur
                     </h3>
                     <div className="space-y-6">
                       {selected.feedbackDetails.likedFeatures?.length > 0 && (
                         <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase mb-3">Fonctionnalités Aimées</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase mb-3">Ce qu'ils aiment</p>
                           <div className="flex flex-wrap gap-2">
                             {selected.feedbackDetails.likedFeatures.map(f => (
-                              <span key={f} className="px-3 py-1 bg-white border border-indigo-100 rounded-lg text-xs font-bold text-indigo-600">
-                                {f}
+                              <span key={f} className="px-3 py-1 bg-white border border-indigo-100 rounded-lg text-[10px] font-bold text-indigo-600">
+                                {FEATURE_CONFIG[f]?.label || f}
                               </span>
                             ))}
                           </div>
@@ -684,8 +714,14 @@ export default function FeedbackUnifiedPage() {
                       )}
                       {selected.feedbackDetails.suggestions && (
                         <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Suggestions</p>
-                          <p className="text-sm font-medium text-slate-600">{selected.feedbackDetails.suggestions}</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Suggestions de fonctionnalités</p>
+                          <p className="text-sm font-medium text-slate-700 leading-relaxed">{selected.feedbackDetails.suggestions}</p>
+                        </div>
+                      )}
+                      {selected.feedbackDetails.futureNeeds && (
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Besoins futurs exprimés</p>
+                          <p className="text-sm font-medium text-slate-700 leading-relaxed bg-amber-50/50 p-4 rounded-xl border border-amber-100/50">{selected.feedbackDetails.futureNeeds}</p>
                         </div>
                       )}
                     </div>
@@ -693,21 +729,31 @@ export default function FeedbackUnifiedPage() {
                 )}
 
                 {selected.attachments && selected.attachments.length > 0 && (
-                   <section>
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-slate-500/20 to-slate-500/5 rounded-lg flex items-center justify-center">
-                        <ImageIcon className="w-4 h-4 text-slate-500" />
-                      </div> 
+                   <section className="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-slate-400" />
                       Pièces Jointes
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
                       {selected.attachments.map(att => (
-                        <a key={att.id} href={att.fileUrl} target="_blank" className="relative group aspect-video rounded-2xl overflow-hidden border border-slate-200">
-                           <img src={att.fileUrl} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                             <Eye className="w-6 h-6 text-white" />
-                           </div>
-                        </a>
+                        <div key={att.id} className="relative group aspect-square rounded-2xl overflow-hidden border border-slate-200 bg-white">
+                           <img 
+                            src={att.fileUrl} 
+                            alt={att.fileName}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Image+Indisponible';
+                            }}
+                           />
+                           <a 
+                            href={att.fileUrl} 
+                            target="_blank" 
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2"
+                           >
+                             <Eye className="w-8 h-8 text-white" />
+                             <span className="text-[10px] font-bold text-white bg-black/40 px-2 py-1 rounded-full">Voir en plein écran</span>
+                           </a>
+                        </div>
                       ))}
                     </div>
                    </section>
@@ -731,14 +777,14 @@ export default function FeedbackUnifiedPage() {
                     <textarea
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="Votre réponse ici... (envoyée par email)"
-                      className="w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none shadow-sm"
+                      placeholder="Votre réponse ici..."
+                      className="w-full p-4 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-500 outline-none resize-none shadow-sm"
                       rows={4}
                     />
                     <button
                       onClick={handleReply}
                       disabled={!replyText.trim() || isSending}
-                      className="w-full py-4 bg-[#1a2a4a] text-white rounded-2xl font-bold text-sm hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isSending ? <Clock className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                       Envoyer la réponse

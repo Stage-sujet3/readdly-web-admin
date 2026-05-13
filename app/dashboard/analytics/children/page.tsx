@@ -51,7 +51,7 @@ const FAKE_DATA = {
   imagesGenerated: 34,
   educationalTexts: 89,
   dictionaryUses: 45,
-  avgSessionTime: 650, 
+  avgSessionTime: 650,
   totalAppTime: 45600,
   activeToday: 8,
   healthScore: 92,
@@ -134,7 +134,7 @@ function SafeChartContainer({
 
 export default function ChildrenAnalyticsPage() {
   const { data: realData, loading, error, refresh } = useAnalytics()
-  
+
   // Use fake data only if real data is empty (totalEnfants === 0)
   const isFake = realData && realData.totalEnfants === 0
   const data = isFake ? FAKE_DATA : realData
@@ -181,17 +181,23 @@ export default function ChildrenAnalyticsPage() {
     minutes: Math.round((p.duration || 0) / 60),
   }))
 
-  const usagePie = (data.distribution || []).map((d) => ({
-    ...d,
-    label: FEATURE_LABELS[d.name] || d.name,
-    value: d.value || 0,
-  }))
-  const featureTimes = (data.timePerFeature || []).map((item) => ({
-    ...item,
-    feature: FEATURE_LABELS[item.feature] || item.feature,
-    totalTime: Math.round((item.totalTime || 0) / 60), // Convert to minutes
-    avgTime: Math.round((item.avgTime || 0) / 60), // Convert to minutes
-  })).filter(item => item.feature !== 'Imports') // Remove Imports
+  const usagePie = (data.distribution || [])
+    .filter(d => d.name !== 'NAVIGATION' && d.name !== 'IMPORT' && d.name !== 'OTHER' && d.name !== 'APP_SESSION')
+    .map((d) => ({
+      ...d,
+      label: FEATURE_LABELS[d.name] || d.name,
+      value: d.value || 0,
+    }))
+
+  const CORE_FEATURES = ['STORY', 'TEXT', 'SCAN', 'DICT', 'IMAGE', 'AI']
+  const featureTimes = CORE_FEATURES.map((featKey) => {
+    const item = (data.timePerFeature || []).find(it => it.feature === featKey)
+    return {
+      feature: FEATURE_LABELS[featKey] || featKey,
+      totalTime: item ? Math.round((item.totalTime || 0) / 60) : 0,
+      avgTime: item ? Math.round((item.avgTime || 0) / 60) : 0,
+    }
+  })
 
   const smartInsights = [
     {
@@ -274,13 +280,34 @@ export default function ChildrenAnalyticsPage() {
           <h3 className="text-lg font-bold text-[#1a2a4a] mb-6">Activité quotidienne</h3>
           {(data.dailyActivity || []).length > 0 ? (
             <SafeChartContainer height={320}>
-              <LineChart data={data.dailyActivity || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="count" name="Actions" stroke="#f59e0b" strokeWidth={3} dot={{ fill: '#f59e0b', r: 6 }} />
-              </LineChart>
+              <AreaChart data={data.dailyActivity || []}>
+                <defs>
+                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} 
+                />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="count" 
+                  name="Actions" 
+                  stroke="#f59e0b" 
+                  strokeWidth={4}
+                  fillOpacity={1} 
+                  fill="url(#colorCount)" 
+                />
+              </AreaChart>
             </SafeChartContainer>
           ) : (
             <div className="h-[320px] rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
@@ -327,7 +354,13 @@ export default function ChildrenAnalyticsPage() {
                 <XAxis type="number" hide />
                 <YAxis dataKey="feature" type="category" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
                 <Tooltip />
-                <Bar dataKey="totalTime" name="Temps (min)" fill="#6366f1" radius={[0, 8, 8, 0]} />
+                <Bar 
+                  dataKey="totalTime" 
+                  name="Temps (min)" 
+                  fill="#6366f1" 
+                  radius={[0, 8, 8, 0]} 
+                  label={{ position: 'right', fill: '#6366f1', fontSize: 10, fontWeight: 'bold', formatter: (v: any) => `${v} min` }}
+                />
               </BarChart>
             </SafeChartContainer>
           ) : (
@@ -420,38 +453,6 @@ export default function ChildrenAnalyticsPage() {
         </div>
       </div>
 
-      <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-        <h3 className="text-xl font-bold text-[#1a2a4a] mb-6">Actions prioritaires</h3>
-        <div className="space-y-4">
-          <div className="flex items-start gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-bold">1</span>
-            </div>
-            <div>
-              <p className="font-semibold text-lg text-slate-900">Améliorer les histoires interactives</p>
-              <p className="text-slate-600 text-sm mt-1">Ajouter choix narratifs et personnages personnalisables</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-bold">2</span>
-            </div>
-            <div>
-              <p className="font-semibold text-lg text-slate-900">Lancer programme de lecture quotidienne</p>
-              <p className="text-slate-600 text-sm mt-1">Créer défis de 21 jours avec badges et progression visible</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-bold">3</span>
-            </div>
-            <div>
-              <p className="font-semibold text-lg text-slate-900">Développer espace parental avancé</p>
-              <p className="text-slate-600 text-sm mt-1">Tableaux de bord détaillés et recommandations personnalisées</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

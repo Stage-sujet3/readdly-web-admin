@@ -28,7 +28,7 @@ export function useAudit() {
     try {
       const response = await getAuditLogs({
         page,
-        limit: 6,
+        limit: 8,
         ...filters
       });
 

@@ -97,16 +97,9 @@ export default function AuditPage() {
                   </div>
                   <div className="p-8 space-y-6">
                     <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Description</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Description complète</label>
                       <p className="text-slate-700 font-bold text-lg leading-snug">
-                        {selectedLog.description.includes('Suppression de l\'utilisateur') 
-                          ? selectedLog.description.split('Suppression de l\'utilisateur ')[1]?.split(' (')[0] || selectedLog.description
-                          : selectedLog.description.includes('Nouvel utilisateur créé:')
-                          ? selectedLog.description.split('Nouvel utilisateur créé: ')[1]?.split(' (')[0] || selectedLog.description
-                          : selectedLog.description.includes('DELETE on USER')
-                          ? 'Suppression utilisateur'
-                          : selectedLog.description
-                        }
+                        {selectedLog.description}
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
@@ -125,16 +118,7 @@ export default function AuditPage() {
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Informations supplémentaires</label>
-                      <div className="bg-slate-50 p-4 rounded-2xl text-sm text-slate-600">
-                        {selectedLog.metadata && JSON.parse(selectedLog.metadata).query 
-                          ? typeof JSON.parse(selectedLog.metadata).query === 'object' && JSON.parse(selectedLog.metadata).query !== null
-                            ? 'Recherche avec filtres appliqués'
-                            : `Recherche: ${JSON.parse(selectedLog.metadata).query}`
-                          : 'Aucune information supplémentaire'}
-                      </div>
-                    </div>
+
                   </div>
                   <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
                     <button 
@@ -302,7 +286,7 @@ export default function AuditPage() {
             <h3 className="text-lg font-bold">Flux d'activité</h3>
           </div>
           <div className="space-y-8 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-px before:bg-white/10">
-            {logs?.slice(0, 6).map((log, idx) => (
+            {logs?.slice(0, 5).map((log, idx) => (
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}

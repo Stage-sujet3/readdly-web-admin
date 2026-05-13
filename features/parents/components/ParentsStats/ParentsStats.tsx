@@ -15,7 +15,7 @@ export function ParentsStats({ stats }: ParentsStatsProps) {
   const cards = [
     { label: "Total Parents", value: stats.totalParents, icon: Users, color: "text-blue-500", gradient: "from-blue-500/20 to-blue-500/5" },
     { label: "Total Enfants", value: stats.totalChildren, icon: Baby, color: "text-indigo-500", gradient: "from-indigo-500/20 to-indigo-500/5" },
-    { label: "Comptes Vérifiés", value: `${verificationRate}%`, icon: ShieldCheck, color: "text-emerald-500", gradient: "from-emerald-500/20 to-emerald-500/5" },
+    { label: "Identités Vérifiées", value: `${verificationRate}%`, icon: ShieldCheck, color: "text-emerald-500", gradient: "from-emerald-500/20 to-emerald-500/5" },
   ];
 
   return (

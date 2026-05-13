@@ -50,9 +50,23 @@ interface RatingsSummary {
   distribution: Record<number, number>
 }
 
-const TYPE_CONFIG: Record<MessageType, { label: string; color: string; icon: any; bg: string; border: string }> = {
-  PROBLEM: { label: "Problème", color: "text-slate-700", icon: AlertTriangle, bg: "bg-slate-100", border: "border-slate-200" },
-  FEEDBACK: { label: "Feedback", color: "text-slate-700", icon: MessageSquare, bg: "bg-slate-100", border: "border-slate-200" },
+const TYPE_CONFIG: Record<MessageType, { label: string; color: string; icon: any; bg: string; border: string; accent: string }> = {
+  PROBLEM: { 
+    label: "Problème", 
+    color: "text-orange-700", 
+    icon: AlertTriangle, 
+    bg: "bg-orange-50", 
+    border: "border-orange-100",
+    accent: "bg-orange-500"
+  },
+  FEEDBACK: { 
+    label: "Feedback", 
+    color: "text-indigo-700", 
+    icon: MessageSquare, 
+    bg: "bg-indigo-50", 
+    border: "border-indigo-100",
+    accent: "bg-indigo-500"
+  },
 }
 
 const STATUS_CONFIG: Record<MessageStatus, { label: string; color: string; dot: string }> = {
@@ -216,6 +230,7 @@ export default function FeedbackUnifiedPage() {
   const [isSending, setIsSending] = useState(false)
   const [replySuccess, setReplySuccess] = useState("")
   const [search, setSearch] = useState("")
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
 
   // Ratings State
   const [ratingsSummary, setRatingsSummary] = useState<RatingsSummary | null>(null)
@@ -406,8 +421,8 @@ export default function FeedbackUnifiedPage() {
                           transition={{ delay: i * 0.04 }}
                           className="flex items-center gap-5 px-6 py-5 hover:bg-slate-50 transition-colors group cursor-pointer border-b border-slate-100"
                           onClick={() => { setSelected(msg); setReplyText("") }}>
-                          <div className={`w-11 h-11 flex-shrink-0 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center`}>
-                            <TypeIcon className={`w-5 h-5 text-slate-600`} />
+                          <div className={`w-11 h-11 flex-shrink-0 ${TYPE_CONFIG[msg.type].bg} border ${TYPE_CONFIG[msg.type].border} rounded-xl flex items-center justify-center`}>
+                            <TypeIcon className={`w-5 h-5 ${TYPE_CONFIG[msg.type].color}`} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -600,14 +615,14 @@ export default function FeedbackUnifiedPage() {
               transition={{ type: "spring", damping: 28, stiffness: 250 }}
               className="fixed right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl z-[101] flex flex-col">
               
-              <div className={`p-8 border-b border-slate-200 bg-slate-50`}>
+              <div className={`p-8 border-b ${TYPE_CONFIG[selected.type].border} ${TYPE_CONFIG[selected.type].bg}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm`}>
-                      {React.createElement(TYPE_CONFIG[selected.type].icon, { className: `w-6 h-6 text-slate-600` })}
+                    <div className={`w-12 h-12 bg-white border ${TYPE_CONFIG[selected.type].border} rounded-xl flex items-center justify-center shadow-sm`}>
+                      {React.createElement(TYPE_CONFIG[selected.type].icon, { className: `w-6 h-6 ${TYPE_CONFIG[selected.type].color}` })}
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      <p className={`text-xs font-bold uppercase tracking-wider ${TYPE_CONFIG[selected.type].color} mb-1 opacity-80`}>
                         {TYPE_CONFIG[selected.type].label} • {selected.senderType}
                       </p>
                       <h2 className="text-xl font-bold text-slate-800 leading-tight">{selected.subject}</h2>
@@ -639,17 +654,19 @@ export default function FeedbackUnifiedPage() {
                     <div className="w-8 h-8 bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 rounded-lg flex items-center justify-center">
                       <MessageSquare className="w-4 h-4 text-indigo-500" />
                     </div> 
-                    Message
+                    Contenu du message
                   </h3>
-                  <p className="text-sm font-medium text-slate-700 leading-relaxed bg-slate-50 p-6 rounded-[1.5rem] border border-slate-100">
+                  <p className="text-sm font-medium text-slate-700 leading-relaxed bg-white p-6 rounded-[1.5rem] border border-slate-200 shadow-sm">
                     {selected.description}
                   </p>
                 </section>
 
                 {selected.type === "PROBLEM" && selected.problemDetails && (
-                  <section className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-slate-400" />
+                  <section className="bg-orange-50/50 rounded-[2rem] p-8 border border-orange-100">
+                    <h3 className="text-xs font-black text-orange-600 uppercase tracking-widest mb-6 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <AlertTriangle className="w-4 h-4 text-orange-600" />
+                      </div>
                       Diagnostic Technique
                     </h3>
                     <div className="grid grid-cols-2 gap-4 mb-6">
@@ -694,10 +711,12 @@ export default function FeedbackUnifiedPage() {
                 )}
 
                 {selected.type === "FEEDBACK" && selected.feedbackDetails && (
-                  <section className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-slate-400" />
-                      Retours Utilisateur
+                  <section className="bg-indigo-50/50 rounded-[2rem] p-8 border border-indigo-100">
+                    <h3 className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-6 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                        <MessageSquare className="w-4 h-4 text-indigo-600" />
+                      </div>
+                      Analyse du Feedback
                     </h3>
                     <div className="space-y-6">
                       {selected.feedbackDetails.likedFeatures?.length > 0 && (
@@ -745,14 +764,16 @@ export default function FeedbackUnifiedPage() {
                               (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Image+Indisponible';
                             }}
                            />
-                           <a 
-                            href={att.fileUrl} 
-                            target="_blank" 
-                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2"
+                           <div 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewImage(att.fileUrl);
+                            }}
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 cursor-pointer"
                            >
                              <Eye className="w-8 h-8 text-white" />
-                             <span className="text-[10px] font-bold text-white bg-black/40 px-2 py-1 rounded-full">Voir en plein écran</span>
-                           </a>
+                             <span className="text-[10px] font-bold text-white bg-black/40 px-2 py-1 rounded-full">Agrandir</span>
+                           </div>
                         </div>
                       ))}
                     </div>
@@ -794,6 +815,34 @@ export default function FeedbackUnifiedPage() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Image Preview Lightbox */}
+      <AnimatePresence>
+        {previewImage && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4 md:p-12"
+            onClick={() => setPreviewImage(null)}
+          >
+            <button 
+              className="absolute top-8 right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+              onClick={() => setPreviewImage(null)}
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <motion.img 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              src={previewImage}
+              className="max-w-full max-h-full rounded-2xl shadow-2xl object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { CheckCircle, Clock, XCircle, Zap } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { motion } from "framer-motion"
 import { Progress } from "@/components/ui/Progress"
 import { useAdminStats } from "@/hooks/useAdminStats"
@@ -24,7 +24,7 @@ export function ActivitySection() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Weekly Activity Line Chart */}
+      {/* Weekly Activity Area Chart */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -46,7 +46,13 @@ export function ActivitySection() {
         <div className="h-[300px] w-full">
           {statsData?.weeklyActivity?.length ? (
             <ResponsiveContainer width="100%" height={300} minWidth={300} minHeight={300}>
-              <LineChart data={statsData.weeklyActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={statsData.weeklyActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#5f6ad8" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#5f6ad8" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.03)" />
                 <XAxis 
                   dataKey="day" 
@@ -61,18 +67,19 @@ export function ActivitySection() {
                   tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
                 />
                 <Tooltip 
-                  cursor={{ fill: 'rgba(95, 106, 216, 0.04)' }}
+                  cursor={{ stroke: '#5f6ad8', strokeWidth: 1 }}
                   contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                 />
-                <Line 
+                <Area 
                   type="monotone" 
                   dataKey="activities" 
                   stroke="#5f6ad8" 
                   strokeWidth={3} 
-                  dot={{ r: 5, strokeWidth: 2, fill: '#fff', stroke: '#5f6ad8' }}
+                  fillOpacity={1} 
+                  fill="url(#colorActivity)" 
                   activeDot={{ r: 7, strokeWidth: 0, fill: '#5f6ad8' }}
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-slate-400">

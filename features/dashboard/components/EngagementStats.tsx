@@ -18,61 +18,50 @@ export function EngagementStats() {
     )
   }
 
-  const engagementStats = [
-    {
-      title: "Messages Support",
-      value: statsData?.totalMessages ?? 0,
-      icon: MessageSquare,
-      color: "text-blue-500",
-      bg: "bg-blue-50",
-      description: "Demandes et problèmes signalés"
-    },
-    {
-      title: "Évaluations",
-      value: statsData?.totalRatings ?? 0,
-      icon: Star,
-      color: "text-amber-500",
-      bg: "bg-amber-50",
-      description: "Notes sur les fonctionnalités"
-    },
-    {
-       title: "Utilisateurs Actifs",
-       value: statsData?.activeUsers ?? 0,
-       icon: Zap,
-       color: "text-emerald-500",
-       bg: "bg-emerald-50",
-       description: "Comptes actifs actuellement"
-    },
-    {
-       title: "Orthos en attente",
-       value: statsData?.pendingOrthophonistes ?? 0,
-       icon: Clock,
-       color: "text-orange-500",
-       bg: "bg-orange-50",
-       description: "Vérifications à traiter"
-    }
-  ]
+  const pendingCount = statsData?.pendingOrthophonistes ?? 0;
+
+  if (pendingCount === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {engagementStats.map((stat, i) => (
-        <motion.div
-          key={stat.title}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1 }}
-          className="bg-white/60 backdrop-blur-md rounded-3xl p-6 border border-white/40 shadow-sm flex items-start gap-4"
-        >
-          <div className={`p-3 rounded-2xl ${stat.bg}`}>
-            <stat.icon className={`w-6 h-6 ${stat.color}`} />
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-8 relative overflow-hidden"
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600 opacity-[0.03] rounded-[2.5rem]" />
+      <div className="relative bg-white/40 backdrop-blur-xl border border-orange-100 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+        <div className="flex items-center gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full animate-pulse" />
+            <div className="relative w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <Clock className="w-8 h-8 text-white" />
+            </div>
           </div>
+          
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.title}</p>
-            <p className="text-2xl font-bold text-[#1a2a4a]">{stat.value}</p>
-            <p className="text-[10px] text-slate-500 font-medium mt-0.5">{stat.description}</p>
+            <h3 className="text-xl font-black text-[#1a2a4a] mb-1">
+              {pendingCount} Orthophonistes en attente
+            </h3>
+            <p className="text-slate-500 font-medium">
+              Il y a des demandes de vérification d'identité qui nécessitent votre attention.
+            </p>
           </div>
-        </motion.div>
-      ))}
-    </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="px-6 py-3 bg-white border border-orange-100 rounded-2xl shadow-sm">
+            <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] block mb-0.5">Statut Actuel</span>
+            <span className="text-lg font-bold text-[#1a2a4a]">Action Requise</span>
+          </div>
+          
+          <button 
+            onClick={() => window.location.href = '/dashboard/users?role=ORTHOPHONISTE&status=PENDING'}
+            className="px-8 py-4 bg-[#1a2a4a] text-white rounded-2xl font-bold text-sm hover:bg-[#2a3a5a] transition-all shadow-lg shadow-slate-900/10 hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
+          >
+            Vérifier maintenant
+          </button>
+        </div>
+      </div>
+    </motion.div>
   )
 }

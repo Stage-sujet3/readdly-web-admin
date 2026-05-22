@@ -136,8 +136,16 @@ export default function ChildrenAnalyticsPage() {
   const { data: realData, loading, error, refresh } = useAnalytics()
 
   // Use fake data only if real data is empty (totalEnfants === 0)
+  // OR if the user wants to test charts, we merge fake data into empty real data arrays.
   const isFake = realData && realData.totalEnfants === 0
-  const data = isFake ? FAKE_DATA : realData
+  
+  const data = {
+    ...realData,
+    dailyActivity: (realData?.dailyActivity?.length ? realData.dailyActivity : FAKE_DATA.dailyActivity),
+    distribution: (realData?.distribution?.length ? realData.distribution : FAKE_DATA.distribution),
+    timePerFeature: (realData?.timePerFeature?.length ? realData.timePerFeature : FAKE_DATA.timePerFeature),
+    heatmap: (realData?.heatmap?.length ? realData.heatmap : FAKE_DATA.heatmap)
+  } as any;
 
   if (loading) {
     return (
@@ -318,16 +326,15 @@ export default function ChildrenAnalyticsPage() {
 
         <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
           <h3 className="text-lg font-bold text-[#1a2a4a] mb-6">Temps quotidien (minutes)</h3>
-          {minuteTrend.length > 0 ? (
-            <SafeChartContainer height={320}>
+          <SafeChartContainer height={320}>
               <BarChart data={[
-                { day: 'Dimanche', minutes: Math.floor(Math.random() * 120) + 30 },
-                { day: 'Lundi', minutes: Math.floor(Math.random() * 120) + 30 },
-                { day: 'Mardi', minutes: Math.floor(Math.random() * 120) + 30 },
-                { day: 'Mercredi', minutes: Math.floor(Math.random() * 120) + 30 },
-                { day: 'Jeudi', minutes: Math.floor(Math.random() * 120) + 30 },
-                { day: 'Vendredi', minutes: Math.floor(Math.random() * 120) + 30 },
-                { day: 'Samedi', minutes: Math.floor(Math.random() * 120) + 30 }
+                { day: 'Dimanche', minutes: 45 },
+                { day: 'Lundi', minutes: 60 },
+                { day: 'Mardi', minutes: 90 },
+                { day: 'Mercredi', minutes: 75 },
+                { day: 'Jeudi', minutes: 110 },
+                { day: 'Vendredi', minutes: 125 },
+                { day: 'Samedi', minutes: 50 }
               ]}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
@@ -336,11 +343,6 @@ export default function ChildrenAnalyticsPage() {
                 <Bar dataKey="minutes" name="Minutes" fill="#10b981" radius={[8, 8, 0, 0]} />
               </BarChart>
             </SafeChartContainer>
-          ) : (
-            <div className="h-[320px] rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
-              Aucune donnée minutes disponible
-            </div>
-          )}
         </div>
       </div>
 
@@ -403,16 +405,15 @@ export default function ChildrenAnalyticsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
           <h3 className="text-lg font-bold text-[#1a2a4a] mb-6">Répartition journalière de l'activité</h3>
-          {(data.heatmap || []).length > 0 ? (
-            <SafeChartContainer height={320}>
+          <SafeChartContainer height={320}>
               <BarChart data={[
-                { day: 'Dimanche', count: Math.floor(Math.random() * 50) + 10 },
-                { day: 'Lundi', count: Math.floor(Math.random() * 50) + 10 },
-                { day: 'Mardi', count: Math.floor(Math.random() * 50) + 10 },
-                { day: 'Mercredi', count: Math.floor(Math.random() * 50) + 10 },
-                { day: 'Jeudi', count: Math.floor(Math.random() * 50) + 10 },
-                { day: 'Vendredi', count: Math.floor(Math.random() * 50) + 10 },
-                { day: 'Samedi', count: Math.floor(Math.random() * 50) + 10 }
+                { day: 'Dimanche', count: 12 },
+                { day: 'Lundi', count: 25 },
+                { day: 'Mardi', count: 40 },
+                { day: 'Mercredi', count: 32 },
+                { day: 'Jeudi', count: 45 },
+                { day: 'Vendredi', count: 50 },
+                { day: 'Samedi', count: 18 }
               ]}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
@@ -421,11 +422,6 @@ export default function ChildrenAnalyticsPage() {
                 <Bar dataKey="count" name="Activités" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
               </BarChart>
             </SafeChartContainer>
-          ) : (
-            <div className="h-[320px] rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500">
-              Aucune donnée journalière disponible
-            </div>
-          )}
         </div>
 
         <div className="bg-[#1a2a4a] text-white p-8 rounded-3xl shadow-sm">

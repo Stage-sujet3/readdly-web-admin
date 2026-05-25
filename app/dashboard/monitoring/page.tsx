@@ -31,6 +31,14 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const COLORS = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b'];
 
+const STATUS_LABELS: Record<string, string> = {
+  HEALTHY: 'Opérationnel',
+  WARNING: 'Avertissement',
+  DOWN: 'Hors ligne',
+};
+
+const formatStatus = (status: string) => STATUS_LABELS[status] ?? status;
+
 const ServiceCard = ({ service, idx }: { service: any, idx: number }) => {
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -57,7 +65,7 @@ const ServiceCard = ({ service, idx }: { service: any, idx: number }) => {
             <Server className="w-6 h-6" />
           </div>
           <div className={`px-3 py-1 rounded-full border text-[10px] font-black tracking-widest uppercase ${getStatusStyle(service.status)}`}>
-            {service.status}
+            {formatStatus(service.status)}
           </div>
         </div>
 
@@ -73,7 +81,7 @@ const ServiceCard = ({ service, idx }: { service: any, idx: number }) => {
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter block mb-1">Réponse</span>
             <p className="text-2xl font-black text-slate-900 leading-none">
               {service.status === 'HEALTHY' && service.responseTime === 0 ? (
-                <span className="text-xs text-indigo-400 animate-pulse uppercase">Sync...</span>
+                <span className="text-xs text-indigo-400 animate-pulse uppercase">Synchro...</span>
               ) : (
                 <>{service.responseTime}<span className="text-xs ml-0.5 text-slate-400">ms</span></>
               )}
@@ -402,7 +410,7 @@ export default function MonitoringPage() {
                       alert.level === 'WARNING' ? 'bg-amber-500/20 text-amber-400' : 
                       'bg-emerald-500/20 text-emerald-400'
                     }`}>
-                      {alert.level}
+                      {alert.level === 'ERROR' ? 'ERREUR' : alert.level === 'WARNING' ? 'ATTENTION' : alert.level}
                     </span>
                     <span className="text-[10px] font-bold text-slate-500">{new Date(alert.timestamp).toLocaleTimeString()}</span>
                     <span className="text-[10px] font-bold text-indigo-400 ml-auto uppercase tracking-tighter">{(alert.service || '').replace(' Service', '')}</span>

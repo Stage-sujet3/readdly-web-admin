@@ -4,11 +4,12 @@ import {
   X, Check, Image as ImageIcon, Upload, 
   FileText, Languages, BarChart, Tag, 
   ChevronLeft, ChevronRight, Maximize2, 
-  ExternalLink, Loader2, BookOpen
+  ExternalLink, Loader2, BookOpen, Trash2
 } from 'lucide-react';
 import { Story, Language, Level, Theme, ContentStatus } from '../../types';
 import { fileToBase64 } from '@/utils/helpers';
 import { ProgressBar } from '@/components/ui/ProgressBar';
+import { ImageCropper } from '@/components/ImageCropper';
 
 interface StoryFormModalProps {
   isOpen: boolean;
@@ -22,13 +23,14 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
   const [description, setDescription] = useState<string>(initialData?.description || '');
   const [content, setContent] = useState<string>(initialData?.content || ''); // This will store text or PDF URL/Base64
   const [coverImage, setCoverImage] = useState<string>(initialData?.coverImage || '');
-  const [ageGroup, setAgeGroup] = useState<string>(initialData?.ageGroup || '6-8');
+  const [ageGroup, setAgeGroup] = useState<string>(initialData?.ageGroup || '7-9');
   const [level, setLevel] = useState<Level>(initialData?.level || 'Facile');
   const [theme, setTheme] = useState<Theme>(initialData?.theme || 'Général');
   const [status, setStatus] = useState<ContentStatus>(initialData?.status || 'brouillon');
   const [language, setLanguage] = useState<Language>(initialData?.language || 'Français');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfPreview, setPdfPreview] = useState<string | null>(initialData?.content && initialData.content.startsWith('data:application/pdf') ? initialData.content : null);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   
   const coverInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +45,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
       setDescription(initialData.description || '');
       setContent(initialData.content || '');
       setCoverImage(initialData.coverImage || '');
-      setAgeGroup(initialData.ageGroup || '6-8');
+      setAgeGroup(initialData.ageGroup || '7-9');
       setLevel(initialData.level || 'Facile');
       setTheme(initialData.theme || 'Général');
       setStatus(initialData.status || 'brouillon');
@@ -56,7 +58,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
       setDescription('');
       setContent('');
       setCoverImage('');
-      setAgeGroup('6-8');
+      setAgeGroup('7-9');
       setLevel('Facile');
       setTheme('Général');
       setStatus('brouillon');
@@ -73,13 +75,18 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        const base64 = await fileToBase64(file);
-        setCoverImage(base64);
-      } catch (error) {
-        console.error("Failed to convert image to base64:", error);
-      }
+      const imageUrl = URL.createObjectURL(file);
+      setImageToCrop(imageUrl);
     }
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    setCoverImage(croppedImage);
+    setImageToCrop(null);
+  };
+
+  const handleCropCancel = () => {
+    setImageToCrop(null);
   };
 
   const handlePdfChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,8 +230,34 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
               <div className="col-span-3 space-y-6">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Couverture</label>
-                  <div onClick={() => coverInputRef.current?.click()} className="relative aspect-[3/4.2] bg-slate-50 border-2 border-dashed border-slate-200 rounded-[1.5rem] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50/30 transition-all group">
-                    {coverImage ? <img src={coverImage} alt="Cover" className="w-full h-full object-cover" /> : <div className="text-center p-4"><ImageIcon className="w-10 h-10 text-slate-300 mx-auto mb-2" /><span className="text-[10px] font-bold text-slate-400 uppercase">Importer</span></div>}
+                  <div className="relative aspect-[3/4.2] bg-slate-50 border-2 border-dashed border-slate-200 rounded-[1.5rem] overflow-hidden flex flex-col items-center justify-center transition-all group">
+                    {coverImage ? (
+                      <>
+                        <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+                           <button 
+                             type="button"
+                             onClick={() => coverInputRef.current?.click()}
+                             className="px-4 py-2 bg-white/90 hover:bg-white text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                           >
+                             Changer
+                           </button>
+                           <button 
+                             type="button"
+                             onClick={(e) => { e.stopPropagation(); setCoverImage(''); }}
+                             className="px-4 py-2 bg-red-500/90 hover:bg-red-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                           >
+                             <Trash2 className="w-3 h-3" />
+                             Supprimer
+                           </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div onClick={() => coverInputRef.current?.click()} className="text-center p-4 cursor-pointer w-full h-full flex flex-col items-center justify-center">
+                        <ImageIcon className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Importer</span>
+                      </div>
+                    )}
                     <input type="file" ref={coverInputRef} onChange={handleCoverChange} accept="image/*" className="hidden" />
                   </div>
                 </div>
@@ -250,7 +283,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
                      <div className="space-y-1.5">
                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Âge Cible</label>
                        <select className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 text-slate-700 font-bold text-sm appearance-none cursor-pointer" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)}>
-                         <option value="3-5">3-5 ans</option><option value="6-8">6-8 ans</option><option value="9-12">9-12 ans</option><option value="13+">13+ ans</option>
+                         <option value="7-9">7-9 ans</option><option value="10-12">10-12 ans</option><option value="13-14">13-14 ans</option>
                        </select>
                      </div>
                      <div className="space-y-1.5">
@@ -282,48 +315,202 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
             {isUploading && <div className="mt-4"><ProgressBar progress={uploadProgress} label={uploadMessage} status="loading" /></div>}
           </form>
         </motion.div>
+
+        {imageToCrop && (
+          <ImageCropper
+            image={imageToCrop}
+            aspect={16 / 9}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        )}
       </div>
     </AnimatePresence>
   );
 }
 
+import { api } from '@/services/api';
+
 export function StoryViewModal({ isOpen, onClose, content }: { isOpen: boolean, onClose: () => void, content: Story | null }) {
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<'left' | 'right'>('right');
 
   const isArabic = React.useMemo(() => /[\u0600-\u06FF]/.test(content?.content || ''), [content?.content]);
-  const pages = React.useMemo(() => {
-    if (content?.type === 'PDF' && content.children?.length) return content.children.map((ch: any) => ch.content || "Chapitre vide");
-    if (!content?.content) return ["Le contenu de l'histoire est vide."];
-    const words = content.content.split(/\s+/).filter(Boolean);
-    const result: string[] = [];
-    for (let i = 0; i < words.length; i += 220) result.push(words.slice(i, i + 220).join(' '));
-    return result;
-  }, [content]);
-
-  const totalPages = pages.length;
+  
+  // Update state to hold dynamic page info
+  const [pageDataList, setPageDataList] = useState<{id?: string, content: string, coverImage?: string, isChapter: boolean}[]>([]);
 
   useEffect(() => {
-    if (isOpen) { setCurrentPage(0); const timer = setTimeout(() => setLoading(false), 450); return () => clearTimeout(timer); }
+    if (!content) {
+      setPageDataList([]);
+      return;
+    }
+
+    if (content.type === 'PDF' && content.children?.length) {
+      setPageDataList(content.children.map((ch: any) => ({
+        id: ch.id,
+        content: ch.content || "Chapitre vide",
+        coverImage: ch.coverImage,
+        isChapter: true
+      })));
+      return;
+    }
+    
+    const contentText = content.content || '';
+    if (!contentText.trim()) {
+      setPageDataList([{ content: "Le contenu de l'histoire est vide.", isChapter: false }]);
+      return;
+    }
+
+    // Split content by sentence delimiters or line breaks
+    const rawSentences = contentText.match(/[^.!?\n]+[.!?\n]*/g) || [contentText];
+    const pagesList: string[] = [];
+    
+    let currentChunk: string[] = [];
+    let currentWordCount = 0;
+    const MAX_WORDS_PER_PAGE = 30;
+
+    for (const rawSentence of rawSentences) {
+      const sentence = rawSentence.trim();
+      if (!sentence) continue;
+
+      const sentenceWordsArray = sentence.split(/\s+/);
+      const sentenceWords = sentenceWordsArray.length;
+
+      // If the sentence itself is longer than 30 words (e.g. no punctuation), we must split it forcefully
+      if (sentenceWords > MAX_WORDS_PER_PAGE) {
+        // First push whatever we already have
+        if (currentChunk.length > 0) {
+          pagesList.push(currentChunk.join(' '));
+          currentChunk = [];
+          currentWordCount = 0;
+        }
+
+        // Break the long sentence into chunks of MAX_WORDS_PER_PAGE
+        for (let i = 0; i < sentenceWordsArray.length; i += MAX_WORDS_PER_PAGE) {
+          pagesList.push(sentenceWordsArray.slice(i, i + MAX_WORDS_PER_PAGE).join(' '));
+        }
+        continue; // Handled this long sentence entirely
+      }
+
+      // Normal case: check if adding this sentence exceeds limit
+      if (currentWordCount + sentenceWords > MAX_WORDS_PER_PAGE && currentChunk.length > 0) {
+        pagesList.push(currentChunk.join(' '));
+        currentChunk = [];
+        currentWordCount = 0;
+      }
+
+      currentChunk.push(sentence);
+      currentWordCount += sentenceWords;
+    }
+
+    if (currentChunk.length > 0) {
+      pagesList.push(currentChunk.join(' '));
+    }
+
+    setPageDataList(pagesList.length > 0 
+      ? pagesList.map((p, i) => ({ 
+          id: content.id,
+          content: p, 
+          coverImage: content.pageImages?.[i] || '',
+          isChapter: true 
+        })) 
+      : [{ content: "Le contenu de l'histoire est vide.", isChapter: false }]
+    );
+  }, [content]);
+
+  const totalPages = pageDataList.length;
+
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const handlePageImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, pageIndex: number) => {
+    if (!content) return;
+    const file = e.target.files?.[0];
+    const pageData = pageDataList[pageIndex];
+    if (file && pageData.id && pageData.isChapter) {
+      try {
+        setIsUploadingImage(true);
+        const base64 = await fileToBase64(file);
+        
+        // Update via API
+        if (pageData.id === content.id) {
+          // Dynamic page, update pageImages array on parent story
+          const currentImages = [...(content.pageImages || [])];
+          while (currentImages.length <= pageIndex) currentImages.push('');
+          currentImages[pageIndex] = base64;
+          await api.patch(`/learning/stories/${content.id}`, { pageImages: currentImages });
+          
+          // Also update the local content reference so subsequent uploads have the latest array
+          if (!content.pageImages) content.pageImages = [];
+          content.pageImages[pageIndex] = base64;
+        } else {
+          // PDF Chapter story
+          await api.patch(`/learning/stories/${pageData.id}`, { coverImage: base64 });
+        }
+        
+        // Update local state
+        setPageDataList(prev => {
+          const newList = [...prev];
+          newList[pageIndex] = { ...newList[pageIndex], coverImage: base64 };
+          return newList;
+        });
+      } catch (error) {
+        console.error("Failed to upload page image:", error);
+      } finally {
+        setIsUploadingImage(false);
+      }
+    }
+  };
+
+  const handlePageImageDelete = async (pageIndex: number) => {
+    if (!content) return;
+    const pageData = pageDataList[pageIndex];
+    if (pageData.id && pageData.isChapter) {
+      try {
+        setIsUploadingImage(true);
+        
+        // Update via API
+        if (pageData.id === content.id) {
+          // Dynamic page, update pageImages array on parent story
+          const currentImages = [...(content.pageImages || [])];
+          if (currentImages[pageIndex]) {
+            currentImages[pageIndex] = '';
+            await api.patch(`/learning/stories/${content.id}`, { pageImages: currentImages });
+            
+            // Update local content reference
+            if (content.pageImages) content.pageImages[pageIndex] = '';
+          }
+        } else {
+          // PDF Chapter story
+          await api.patch(`/learning/stories/${pageData.id}`, { coverImage: '' });
+        }
+        
+        // Update local state
+        setPageDataList(prev => {
+          const newList = [...prev];
+          newList[pageIndex] = { ...newList[pageIndex], coverImage: '' };
+          return newList;
+        });
+      } catch (error) {
+        console.error("Failed to delete page image:", error);
+      } finally {
+        setIsUploadingImage(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) { const timer = setTimeout(() => setLoading(false), 450); return () => clearTimeout(timer); }
     else setLoading(true);
   }, [isOpen]);
 
   if (!isOpen || !content) return null;
 
-  const goNext = () => { if (currentPage < totalPages - 1) { setFlipDirection('right'); setCurrentPage(p => p + 1); } };
-  const goPrev = () => { if (currentPage > 0) { setFlipDirection('left'); setCurrentPage(p => p - 1); } };
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowRight' || e.key === ' ') goNext();
-    if (e.key === 'ArrowLeft') goPrev();
     if (e.key === 'Escape') onClose();
   };
 
   const fontFamily = isArabic ? '"Scheherazade New", serif' : 'Georgia, serif';
   const textDir = isArabic ? 'rtl' : 'ltr';
-
-  const progress = totalPages > 0 ? ((currentPage + 1) / totalPages) * 100 : 0;
 
   return (
     <AnimatePresence>
@@ -351,13 +538,10 @@ export function StoryViewModal({ isOpen, onClose, content }: { isOpen: boolean, 
               </div>
               <div>
                 <h3 className="text-lg font-black text-slate-800 tracking-tight">{content.title}</h3>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lecture Immersive</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Éditeur de contenu ({totalPages} pages)</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="px-4 py-2 bg-slate-50 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
-                Page {currentPage + 1} sur {totalPages}
-              </div>
               <button onClick={onClose} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-full transition-all text-slate-400">
                 <X className="w-6 h-6" />
               </button>
@@ -365,66 +549,83 @@ export function StoryViewModal({ isOpen, onClose, content }: { isOpen: boolean, 
           </div>
 
           {/* Reading Area */}
-          <div className="flex-1 overflow-hidden flex relative">
-            {/* Left Page Shadow */}
-            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-50 to-transparent pointer-events-none z-10" />
-            
-            <div className="flex-1 overflow-y-auto px-20 py-16 custom-scrollbar flex flex-col items-center">
-              <motion.div
-                key={currentPage}
-                initial={{ opacity: 0, x: flipDirection === 'right' ? 30 : -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="max-w-3xl w-full"
-                dir={textDir}
-              >
+          <div className="flex-1 overflow-y-auto bg-slate-50/50 p-6 md:p-10 custom-scrollbar relative z-10 flex flex-col gap-8">
+            {pageDataList.map((pageData, index) => (
+              <div key={index} className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col gap-6" dir={textDir}>
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                  <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs">
+                    {index + 1}
+                  </div>
+                  <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest">Page {index + 1}</h4>
+                </div>
+                
                 <div 
-                  className="text-slate-800 text-2xl md:text-3xl leading-[1.8] font-medium"
+                  className="text-slate-800 text-xl md:text-2xl leading-[1.8] font-medium"
                   style={{ fontFamily }}
                 >
-                  {pages[currentPage]}
+                  {pageData.content}
                 </div>
-              </motion.div>
-            </div>
-
-            {/* Right Page Shadow */}
-            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none z-10" />
-          </div>
-
-          {/* Footer Navigation */}
-          <div className="px-10 py-6 border-t border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <button 
-              onClick={goPrev} 
-              disabled={currentPage === 0}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all disabled:opacity-20 bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600 shadow-sm"
-            >
-              <ChevronLeft className="w-4 h-4" /> Précédent
-            </button>
-
-            <div className="flex gap-2">
-              {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
-                const isActive = i === (currentPage % 5); // simplified for demo
-                return <div key={i} className={`h-1.5 rounded-full transition-all ${isActive ? 'w-8 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
-              })}
-            </div>
-
-            <button 
-              onClick={goNext} 
-              disabled={currentPage === totalPages - 1}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all disabled:opacity-20 bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200"
-            >
-              Suivant <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="h-1 w-full bg-slate-100">
-            <motion.div 
-              className="h-full bg-indigo-600" 
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.3 }}
-            />
+                
+                {pageData.isChapter && (
+                  <div className="mt-4 pt-6 border-t border-slate-100 w-full" dir="ltr">
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1 mb-3 block">
+                      Illustration de la page
+                    </label>
+                    <div 
+                      className="relative w-full aspect-[21/9] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl overflow-hidden flex flex-col items-center justify-center transition-all group"
+                    >
+                      {pageData.coverImage ? (
+                        <>
+                          <img src={pageData.coverImage} alt="Page Illustration" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                            <div className="relative">
+                              <button className="text-white font-bold text-sm bg-indigo-600/80 hover:bg-indigo-600 px-6 py-2.5 rounded-xl backdrop-blur-md transition-all flex items-center gap-2">
+                                <ImageIcon className="w-4 h-4" />
+                                Changer
+                              </button>
+                              <input 
+                                type="file" 
+                                onChange={(e) => handlePageImageUpload(e, index)} 
+                                accept="image/*" 
+                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                                disabled={isUploadingImage}
+                              />
+                            </div>
+                            <button 
+                              onClick={() => handlePageImageDelete(index)}
+                              className="text-white font-bold text-sm bg-red-500/80 hover:bg-red-500 px-6 py-2.5 rounded-xl backdrop-blur-md transition-all flex items-center gap-2"
+                              disabled={isUploadingImage}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Supprimer
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center p-6 relative w-full h-full flex flex-col items-center justify-center hover:bg-indigo-50/30">
+                          {isUploadingImage ? (
+                            <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mx-auto mb-3" />
+                          ) : (
+                            <>
+                              <Upload className="w-10 h-10 text-slate-300 mx-auto mb-3 group-hover:text-indigo-400 transition-colors" />
+                              <span className="text-xs font-black text-slate-400 uppercase tracking-widest block">Ajouter une image</span>
+                              <span className="text-[10px] text-slate-400/80 font-medium mt-1 block">Visible dans l'application mobile sous le texte</span>
+                              <input 
+                                type="file" 
+                                onChange={(e) => handlePageImageUpload(e, index)} 
+                                accept="image/*" 
+                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                                disabled={isUploadingImage}
+                              />
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </motion.div>
       </div>

@@ -55,7 +55,7 @@ export default function AdminAuthPage() {
             >
               Readdly
             </h1>
-            <p className="text-sm text-slate-600">Admin Portal</p>
+            <p className="text-sm text-slate-600">Portail Administrateur</p>
           </motion.div>
         </div>
 
@@ -111,7 +111,7 @@ export default function AdminAuthPage() {
                 className={`inline-flex items-center gap-3 bg-gradient-to-r ${accentGradient} text-white px-6 py-3 rounded-full shadow-lg`}
               >
                 <Shield className="w-8 h-8" />
-                <span className="font-bold text-xl">Admin Portal</span>
+                <span className="font-bold text-xl">Portail Admin</span>
               </motion.div>
 
               <motion.h1
@@ -149,7 +149,7 @@ export default function AdminAuthPage() {
             >
               {[
                 { icon: Shield, text: "Gestion Centralisée" },
-                { icon: CheckCircle2, text: "Analytics & Insights" },
+                { icon: CheckCircle2, text: "Statistiques & Analyses" },
                 { icon: AlertCircle, text: "Gestion Utilisateurs" },
               ].map((feature, index) => (
                 <motion.div

@@ -1,4 +1,4 @@
-export type AgeGroup = '3-5' | '6-8' | '9-12' | '13+';
+export type AgeGroup = '7-9' | '10-12' | '13-14';
 export type Level = 'Facile' | 'Moyen' | 'Difficile';
 export type Theme = 'Général' | 'Animaux' | 'École' | 'Émotions' | 'Famille' | 'Nature' | 'Aventure' | 'Science' | 'Histoire' | 'Sports' | 'Espace' | 'Alimentation' | 'Voyage' | 'Technologie' | 'Autre';
 export type ContentStatus = 'actif' | 'inactif' | 'brouillon';
@@ -23,6 +23,7 @@ export interface StoryChapter {
   title: string;
   content: string;
   chapterNumber?: number;
+  coverImage?: string;
 }
 
 export interface Story extends BaseContent {
@@ -30,6 +31,7 @@ export interface Story extends BaseContent {
   pdfUrl?: string;      // Explicit PDF URL if content is used for text
   author?: string;
   type?: 'TEXT' | 'PDF' | 'IMAGE'; // Story type from backend
+  pageImages?: string[];            // Images for dynamically generated pages
   children?: StoryChapter[];        // Chapter array for PDF stories
   parentId?: string;                // Set on chapter stories
   chapterNumber?: number;
@@ -42,6 +44,7 @@ export interface Dictionary {
   title: string;
   language: Language;
   theme: string;
+  ageGroup?: AgeGroup;
   status: ContentStatus;
   words?: DictionaryWord[];
   createdAt: Date;

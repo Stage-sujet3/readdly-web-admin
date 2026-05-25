@@ -124,8 +124,8 @@ export function DocumentCard({
          </h3>
          
          {coverImage ? (
-           <div className="mt-4 p-1 bg-white border border-slate-200 shadow-sm w-fit transform -rotate-1">
-             <img src={coverImage} alt="pj" className="w-16 h-12 object-cover" />
+           <div className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+             <img src={coverImage} alt="Cover" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
            </div>
          ) : (
            <div className="mt-4 flex-1 flex flex-col gap-2 opacity-30 pointer-events-none">

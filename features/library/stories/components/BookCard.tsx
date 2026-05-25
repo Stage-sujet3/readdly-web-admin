@@ -9,6 +9,7 @@ interface BookCardProps {
   coverImage?: string;
   status: ContentStatus;
   variant: 'story' | 'dictionary' | 'text';
+  isNew?: boolean;
   onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -35,7 +36,7 @@ function hashId(id: string) {
   return Math.abs(h);
 }
 
-export function BookCard({ id, title, coverImage, status, variant, onClick, onEdit, onDelete, onToggleStatus }: BookCardProps) {
+export function BookCard({ id, title, coverImage, status, variant, isNew, onClick, onEdit, onDelete, onToggleStatus }: BookCardProps) {
   const [c1, c2] = coverColors[hashId(id) % coverColors.length];
 
   return (
@@ -46,7 +47,14 @@ export function BookCard({ id, title, coverImage, status, variant, onClick, onEd
       onClick={onClick}
     >
       {/* ── 3D BOOK WRAPPER ── */}
-      <div style={{ transformStyle: 'preserve-3d', position: 'relative', width: 120, height: 172 }}>
+      <div 
+        className={`relative w-[120px] h-[172px] transition-all duration-300 ${isNew ? 'animate-pulse' : ''}`}
+        style={{ 
+          transformStyle: 'preserve-3d', 
+          boxShadow: isNew ? '0 0 20px 5px rgba(250,204,21,0.6)' : 'none',
+          borderRadius: '4px 6px 6px 4px'
+        }}
+      >
 
         {/* ── FRONT COVER ── */}
         <div className="absolute inset-0 rounded-r-md flex flex-col overflow-hidden shadow-[4px_6px_20px_rgba(0,0,0,0.25)]"
@@ -115,6 +123,12 @@ export function BookCard({ id, title, coverImage, status, variant, onClick, onEd
 
         {/* ── BOOK SHADOW ── */}
         <div className="absolute -bottom-3 left-2 right-2 h-4 -z-10 rounded-full opacity-30" style={{ background: 'radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%)', filter: 'blur(4px)' }} />
+        {/* ── NEW STATUS BADGE ── */}
+        {isNew && (
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-yellow-400 border border-yellow-500 text-white text-[9px] font-black rounded-full shadow-lg uppercase tracking-widest z-50 whitespace-nowrap">
+            ⭐ Nouveau
+          </div>
+        )}
       </div>
 
       {/* ── FLOATING ACTION BUTTONS ── */}

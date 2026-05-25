@@ -15,6 +15,7 @@ export function DictionaryFormModal({ isOpen, onClose, onSave, initialData }: Di
   const [title, setTitle] = useState(initialData?.title || '');
   const [language, setLanguage] = useState<Language>(initialData?.language || 'Français');
   const [theme, setTheme] = useState(initialData?.theme || 'Général');
+  const [ageGroup, setAgeGroup] = useState<string>(initialData?.ageGroup || '7-9');
   const [status, setStatus] = useState<ContentStatus>(initialData?.status || 'brouillon');
   const [words, setWords] = useState<Partial<DictionaryWord>[]>(initialData?.words || []);
 
@@ -23,12 +24,14 @@ export function DictionaryFormModal({ isOpen, onClose, onSave, initialData }: Di
       setTitle(initialData.title);
       setLanguage(initialData.language);
       setTheme(initialData.theme);
+      setAgeGroup(initialData.ageGroup || '7-9');
       setStatus(initialData.status);
       setWords(initialData.words || []);
     } else {
       setTitle('');
       setLanguage('Français');
       setTheme('Général');
+      setAgeGroup('7-9');
       setStatus('brouillon');
       setWords([]);
     }
@@ -50,7 +53,7 @@ export function DictionaryFormModal({ isOpen, onClose, onSave, initialData }: Di
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ title, language, theme, status, words });
+    onSave({ title, language, theme, ageGroup, status, words });
     onClose();
   };
 
@@ -104,6 +107,12 @@ export function DictionaryFormModal({ isOpen, onClose, onSave, initialData }: Di
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Langue</label>
                         <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-amber-500 text-slate-700 font-bold text-sm cursor-pointer appearance-none" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
                           <option value="Français">Français</option><option value="Anglais">Anglais</option><option value="Arabe">Arabe</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tranche d'âge</label>
+                        <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-amber-500 text-slate-700 font-bold text-sm cursor-pointer appearance-none" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)}>
+                          <option value="7-9">7-9 ans</option><option value="10-12">10-12 ans</option><option value="13-14">13-14 ans</option>
                         </select>
                       </div>
                       <div className="space-y-1.5">

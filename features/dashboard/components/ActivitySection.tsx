@@ -32,7 +32,7 @@ export function ActivitySection() {
       >
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-bold text-[#1a2a4a]">Interaction Usage</h3>
+            <h3 className="text-xl font-bold text-[#1a2a4a]">Utilisation des Interactions</h3>
             <div className="flex items-center gap-2 mt-1">
                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/20"></span>
                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Score d'activité globale</p>

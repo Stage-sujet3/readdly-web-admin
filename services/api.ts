@@ -3,10 +3,10 @@ import axios from "axios"
 // Direct connection to the API Gateway (no Next.js proxy)
 // The gateway handles CORS for both localhost:3001 and localhost:3003
 export const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
     // Required for SuperTokens session cookies
     withCredentials: true, // Doit être true pour les cookies session
-    timeout: 30000,
+    timeout: 60000,
 })
 
 // Set rid header dynamically for different SuperTokens recipes

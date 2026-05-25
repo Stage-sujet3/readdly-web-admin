@@ -7,7 +7,7 @@ export default function UsersPage() {
   const router = useRouter()
 
   useEffect(() => {
-    router.replace("/dashboard/users/orthophonists")
+    router.replace("/dashboard/users/orthophonistes")
   }, [router])
 
   return (

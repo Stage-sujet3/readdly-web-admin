@@ -23,6 +23,48 @@ import {
 import { useAudit, AuditLog } from "@/features/audit/hooks/useAudit";
 import { motion, AnimatePresence } from "framer-motion";
 
+const formatActionType = (type: string) => {
+  const map: Record<string, string> = {
+    CREATE_STORY: "Création d'histoire",
+    UPDATE_STORY: "Modification d'histoire",
+    DELETE_STORY: "Suppression d'histoire",
+    TOGGLE_STORY: "Statut histoire",
+    CREATE_TEXT: "Création de texte",
+    UPDATE_TEXT: "Modification de texte",
+    DELETE_TEXT: "Suppression de texte",
+    TOGGLE_TEXT: "Statut texte",
+    VERIFY_ORTHOPHONISTE: "Validation d'orthophoniste",
+    REJECT_ORTHOPHONISTE: "Rejet d'orthophoniste",
+    ACCEPT_ORTHOPHONISTE: "Acceptation d'orthophoniste",
+    CREATE_USER: "Création d'utilisateur",
+    UPDATE_USER: "Modification d'utilisateur",
+    DELETE_USER: "Suppression d'utilisateur",
+  };
+  
+  if (map[type]) return map[type];
+  
+  if (type.startsWith("CREATE")) return "Création";
+  if (type.startsWith("UPDATE")) return "Modification";
+  if (type.startsWith("DELETE")) return "Suppression";
+  if (type.startsWith("VERIFY")) return "Validation";
+  if (type.startsWith("REJECT")) return "Rejet";
+  if (type.startsWith("ACCEPT")) return "Acceptation";
+  
+  return type.replace(/_/g, ' ');
+};
+
+const formatTargetType = (target: string) => {
+  const map: Record<string, string> = {
+    ORTHOPHONISTE: "Orthophoniste",
+    STORY: "Histoire",
+    USER: "Utilisateur",
+    TEXT: "Texte Éducatif",
+    DICTIONARY: "Dictionnaire",
+  };
+  
+  return map[target] || target;
+};
+
 export default function AuditPage() {
   const { logs, total, pages, page, setPage, filters, setFilters, isLoading, clearHistory } = useAudit();
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
@@ -85,7 +127,7 @@ export default function AuditPage() {
                       </div>
                       <div>
                         <h3 className="text-xl font-black text-[#1a2a4a]">Détails de l'action</h3>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedLog.actionType}</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{formatActionType(selectedLog.actionType)}</p>
                       </div>
                     </div>
                     <button 
@@ -107,7 +149,7 @@ export default function AuditPage() {
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Cible</label>
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
                           <Tag className="w-4 h-4 text-indigo-400" />
-                          {selectedLog.targetType}
+                          {formatTargetType(selectedLog.targetType)}
                         </div>
                       </div>
                       <div>
@@ -224,13 +266,13 @@ export default function AuditPage() {
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full border text-[10px] font-black flex items-center w-fit gap-1.5 ${getActionColor(log.actionType)}`}>
                           {getActionIcon(log.actionType)}
-                          {log.actionType.replace('_', ' ')}
+                          {formatActionType(log.actionType)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
                           <Tag className="w-3.5 h-3.5 text-slate-400" />
-                          {log.targetType}
+                          {formatTargetType(log.targetType)}
                         </div>
                       </td>
                       <td className="px-6 py-4">

@@ -9,6 +9,7 @@ import { Bookshelf } from '@/features/library/stories/components/Bookshelf';
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal';
 import { useEducationalTexts } from '@/features/library/texts/hooks/useEducationalTexts';
 import { EducationalText } from '@/features/library/types';
+import { isNewContent } from '@/features/library/utils/date';
 
 export default function TextsPage() {
   const { texts, loading, addText, updateText, deleteText, toggleStatus } = useEducationalTexts();
@@ -179,9 +180,11 @@ export default function TextsPage() {
                     key={text.id}
                     id={text.id}
                     title={text.title}
+                    coverImage={text.coverImage}
                     status={text.status}
                     level={text.level}
                     theme={text.theme}
+                    isNew={isNewContent(text.createdAt)}
                     onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
                     onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
                     onDelete={() => handleDeleteClick(text.id, text.title)}
@@ -198,7 +201,7 @@ export default function TextsPage() {
           <section>
             <div className="flex items-center gap-3 mb-6 px-2">
               <div className="w-1.5 h-8 bg-amber-500 rounded-full" />
-              <h2 className="text-xl font-black text-slate-800 tracking-tight">English Educational Texts</h2>
+              <h2 className="text-xl font-black text-slate-800 tracking-tight">Textes Éducatifs en Anglais</h2>
               <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-400 text-[10px] font-black rounded-md">{englishTexts.length}</span>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -208,9 +211,11 @@ export default function TextsPage() {
                     key={text.id}
                     id={text.id}
                     title={text.title}
+                    coverImage={text.coverImage}
                     status={text.status}
                     level={text.level}
                     theme={text.theme}
+                    isNew={isNewContent(text.createdAt)}
                     onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
                     onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
                     onDelete={() => handleDeleteClick(text.id, text.title)}
@@ -218,7 +223,7 @@ export default function TextsPage() {
                   />
                 ))
               ) : (
-                <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">No English texts</div>
+                <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">Aucun texte en anglais</div>
               )}
             </div>
           </section>
@@ -227,7 +232,7 @@ export default function TextsPage() {
           <section>
             <div className="flex items-center gap-3 mb-6 px-2">
               <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
-              <h2 className="text-xl font-black text-slate-800 tracking-tight">نصوص تعليمية بالعربية</h2>
+              <h2 className="text-xl font-black text-slate-800 tracking-tight">Textes Éducatifs en Arabe</h2>
               <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-400 text-[10px] font-black rounded-md">{arabicTexts.length}</span>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -237,9 +242,11 @@ export default function TextsPage() {
                     key={text.id}
                     id={text.id}
                     title={text.title}
+                    coverImage={text.coverImage}
                     status={text.status}
                     level={text.level}
                     theme={text.theme}
+                    isNew={isNewContent(text.createdAt)}
                     onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
                     onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
                     onDelete={() => handleDeleteClick(text.id, text.title)}
@@ -247,7 +254,7 @@ export default function TextsPage() {
                   />
                 ))
               ) : (
-                <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">لا توجد نصوص باللغة العربية</div>
+                <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">Aucun texte en arabe</div>
               )}
             </div>
           </section>
@@ -266,9 +273,11 @@ export default function TextsPage() {
                     key={text.id}
                     id={text.id}
                     title={text.title}
+                    coverImage={text.coverImage}
                     status={text.status}
                     level={text.level}
                     theme={text.theme}
+                    isNew={isNewContent(text.createdAt)}
                     onClick={() => { setSelectedText(text); setIsViewOpen(true); }}
                     onEdit={() => { setSelectedText(text); setIsFormOpen(true); }}
                     onDelete={() => handleDeleteClick(text.id, text.title)}

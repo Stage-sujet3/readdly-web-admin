@@ -6,7 +6,8 @@
     "dev": "next dev --port 3003",
     "build": "next build",
     "start": "next start --port 3003",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "playwright test test/sprint1.e2e.spec.ts --reporter=list"
   },
   "dependencies": {
     "@readdly/common": "git+https://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@github.com/Stage-sujet3/readdly-common.git#dev",
@@ -17,10 +18,12 @@
     "next": "^16.2.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-easy-crop": "^5.5.7",
     "recharts": "^3.8.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

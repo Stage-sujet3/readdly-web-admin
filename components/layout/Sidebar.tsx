@@ -83,25 +83,25 @@ export function Sidebar() {
     },
     { 
       path: "/dashboard/analytics/children", 
-      label: "Analytics Enfants", 
+      label: "Analyses des Enfants", 
       icon: Activity,
       count: 0
     },
     { 
       path: "/dashboard/monitoring", 
-      label: "Monitoring", 
+      label: "Supervision Système", 
       icon: Server,
       count: 0
     },
     { 
       path: "/dashboard/audit", 
-      label: "Historique Admin", 
+      label: "Historique d'Audit", 
       icon: History,
       count: 0
     },
     { 
       path: "/dashboard/messages", 
-      label: "Centre Feedback", 
+      label: "Centre de Feedback", 
       icon: MessageSquare,
       count: 0
     },

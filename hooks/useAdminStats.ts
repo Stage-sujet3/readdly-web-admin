@@ -39,14 +39,14 @@ export function useAdminStats() {
         const response = await getAdminStats(controller.signal)
         clearTimeout(timeoutId)
         
-        console.log("[useAdminStats] API Response:", response)
+        console.log("[useAdminStats] API Response received:", response.status)
         
-        if (response.data?.success) {
+        if (response.data && response.data.success) {
           console.log("[useAdminStats] Stats Data:", response.data.data)
           setStatsData(response.data.data)
         } else {
-          console.error("[useAdminStats] API Error:", response.data)
-          setError("Impossible de récupérer les statistiques")
+          console.error("[useAdminStats] API Error Object:", response.data)
+          setError(response.data?.message || "Impossible de récupérer les statistiques")
         }
       } catch (err: any) {
         console.error("[useAdminStats] Failed:", err)

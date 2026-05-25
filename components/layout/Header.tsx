@@ -30,8 +30,30 @@ export function Header() {
   const getPageTitle = () => {
     const parts = pathname.split('/').filter(Boolean)
     if (parts.length <= 1) return "Tableau de bord"
-    const lastPart = parts[parts.length - 1]
-    return lastPart.charAt(0).toUpperCase() + lastPart.slice(1).replace('-', ' ')
+    const lastPart = parts[parts.length - 1].toLowerCase()
+    
+    const TITLE_MAP: Record<string, string> = {
+      dashboard: "Tableau de bord",
+      users: "Gestion des Utilisateurs",
+      orthophonists: "Orthophonistes",
+      orthophonistes: "Orthophonistes",
+      parents: "Parents",
+      library: "Bibliothèque",
+      stories: "Histoires",
+      dictionary: "Dictionnaire",
+      texts: "Textes Éducatifs",
+      analytics: "Statistiques",
+      children: "Analyses Enfants",
+      monitoring: "Supervision Système",
+      audit: "Historique d'Audit",
+      messages: "Centre de Feedback",
+    }
+    
+    if (TITLE_MAP[lastPart]) {
+      return TITLE_MAP[lastPart]
+    }
+    
+    return lastPart.charAt(0).toUpperCase() + lastPart.slice(1).replace(/-/g, ' ')
   }
 
   return (

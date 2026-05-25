@@ -9,6 +9,7 @@ import { StoryFormModal, StoryViewModal } from '@/features/library/stories/compo
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal';
 import { useStories } from '@/features/library/stories/hooks/useStories';
 import { Story } from '@/features/library/types';
+import { isNewContent } from '@/features/library/utils/date';
 
 export default function StoriesPage() {
   const { stories, loading, addStory, updateStory, deleteStory, toggleStatus, refreshStories } = useStories();
@@ -166,6 +167,7 @@ export default function StoriesPage() {
                   coverImage={story.coverImage}
                   status={story.status}
                   variant="story"
+                  isNew={isNewContent(story.createdAt)}
                   onClick={() => { setSelectedStory(story); setIsViewOpen(true); }}
                   onEdit={() => { setSelectedStory(story); setIsFormOpen(true); }}
                   onDelete={() => handleDeleteClick(story.id, story.title)}
@@ -178,7 +180,7 @@ export default function StoriesPage() {
           </Bookshelf>
 
           {/* ENGLISH SHELF */}
-          <Bookshelf title="English Stories">
+          <Bookshelf title="Histoires en Anglais">
             {englishStories.length > 0 ? (
               englishStories.map((story: Story) => (
                 <BookCard
@@ -188,6 +190,7 @@ export default function StoriesPage() {
                   coverImage={story.coverImage}
                   status={story.status}
                   variant="story"
+                  isNew={isNewContent(story.createdAt)}
                   onClick={() => { setSelectedStory(story); setIsViewOpen(true); }}
                   onEdit={() => { setSelectedStory(story); setIsFormOpen(true); }}
                   onDelete={() => handleDeleteClick(story.id, story.title)}
@@ -195,12 +198,12 @@ export default function StoriesPage() {
                 />
               ))
             ) : (
-              <div className="py-10 text-center text-slate-400 text-sm italic">No English stories</div>
+              <div className="py-10 text-center text-slate-400 text-sm italic">Aucune histoire en anglais</div>
             )}
           </Bookshelf>
 
           {/* ARABIC SHELF */}
-          <Bookshelf title="قصص بالعربية">
+          <Bookshelf title="Histoires en Arabe">
             {arabicStories.length > 0 ? (
               arabicStories.map((story: Story) => (
                 <BookCard
@@ -210,6 +213,7 @@ export default function StoriesPage() {
                   coverImage={story.coverImage}
                   status={story.status}
                   variant="story"
+                  isNew={isNewContent(story.createdAt)}
                   onClick={() => { setSelectedStory(story); setIsViewOpen(true); }}
                   onEdit={() => { setSelectedStory(story); setIsFormOpen(true); }}
                   onDelete={() => handleDeleteClick(story.id, story.title)}
@@ -217,7 +221,7 @@ export default function StoriesPage() {
                 />
               ))
             ) : (
-              <div className="py-10 text-center text-slate-400 text-sm italic">لا توجد قصص باللغة العربية</div>
+              <div className="py-10 text-center text-slate-400 text-sm italic">Aucune histoire en arabe</div>
             )}
           </Bookshelf>
 
@@ -232,6 +236,7 @@ export default function StoriesPage() {
                   coverImage={story.coverImage}
                   status={story.status}
                   variant="story"
+                  isNew={isNewContent(story.createdAt)}
                   onClick={() => { setSelectedStory(story); setIsViewOpen(true); }}
                   onEdit={() => { setSelectedStory(story); setIsFormOpen(true); }}
                   onDelete={() => handleDeleteClick(story.id, story.title)}

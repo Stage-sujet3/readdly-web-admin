@@ -95,7 +95,7 @@ const FEATURE_CONFIG: Record<string, { label: string; icon: any; color: string; 
   PROFILE: { label: "Profil & Compte", icon: User, color: "text-slate-600", bg: "bg-slate-100" },
   AUTH: { label: "Authentification", icon: AlertCircle, color: "text-red-600", bg: "bg-red-50" },
   NOTIFICATIONS: { label: "Notifications & Emails", icon: AlertCircle, color: "text-yellow-600", bg: "bg-yellow-50" },
-  ANALYTICS: { label: "Analytics & Statistiques", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
+  ANALYTICS: { label: "Statistiques & Analyses", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
   GENERAL: { label: "Général", icon: Settings, color: "text-slate-600", bg: "bg-slate-100" },
   DESIGN: { label: "Design", icon: Layers, color: "text-purple-600", bg: "bg-purple-50" },
 }
@@ -351,7 +351,7 @@ export default function FeedbackUnifiedPage() {
             className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${activeView === "RATINGS" ? "bg-[#1a2a4a] text-white shadow-md" : "text-slate-500 hover:text-slate-700"}`}
           >
             <Star className="w-4 h-4" />
-            Ratings & Analytics
+            Notes & Statistiques
           </button>
         </div>
       </div>
@@ -508,7 +508,7 @@ export default function FeedbackUnifiedPage() {
                   {[
                     { label: "Moyenne Globale", value: ratingsSummary?.globalAverage.toFixed(1) || "0.0", sub: "sur 5 étoiles", icon: Star },
                     { label: "Total Évaluations", value: ratingsSummary?.totalVotes || 0, sub: "votes reçus", icon: Users },
-                    { label: "Top Feature", value: ratingsSummary?.topFeature ? (FEATURE_CONFIG[ratingsSummary.topFeature]?.label || ratingsSummary.topFeature) : "—", sub: "Meilleur score", icon: Award },
+                    { label: "Meilleure Fonctionnalité", value: ratingsSummary?.topFeature ? (FEATURE_CONFIG[ratingsSummary.topFeature]?.label || ratingsSummary.topFeature) : "—", sub: "Meilleur score", icon: Award },
                   ].map((kpi, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
@@ -568,7 +568,7 @@ export default function FeedbackUnifiedPage() {
               <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
                 <h2 className="text-xl font-black text-[#1a2a4a] mb-6 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-amber-500" />
-                  Insights & Distribution
+                  Analyse & Distribution
                 </h2>
                 <div className="space-y-4">
                   {[5, 4, 3, 2, 1].map(star => {

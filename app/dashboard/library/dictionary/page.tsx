@@ -7,6 +7,7 @@ import { DictionaryFormModal, DictionaryViewModal } from '@/features/library/dic
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal';
 import { useDictionary } from '@/features/library/dictionary/hooks/useDictionary';
 import { Dictionary } from '@/features/library/types';
+import { isNewContent } from '@/features/library/utils/date';
 
 export default function DictionaryPage() {
   const { 
@@ -270,6 +271,7 @@ function Shelf({ title, dictionaries, icon, color, isDraft, onView, onEdit, onDe
               dictionary={dict} 
               index={idx} 
               color={color}
+              isNew={isNewContent(dict.createdAt)}
               onView={() => onView(dict)}
               onEdit={() => onEdit(dict)}
               onDelete={() => onDelete(dict)}
@@ -290,10 +292,11 @@ function Shelf({ title, dictionaries, icon, color, isDraft, onView, onEdit, onDe
   );
 }
 
-function DictionaryBook({ dictionary, index, color, onView, onEdit, onDelete }: { 
+function DictionaryBook({ dictionary, index, color, isNew, onView, onEdit, onDelete }: { 
   dictionary: Dictionary; 
   index: number; 
   color: string;
+  isNew?: boolean;
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -311,8 +314,13 @@ function DictionaryBook({ dictionary, index, color, onView, onEdit, onDelete }: 
     >
       <div 
         onClick={onView}
-        className={`relative aspect-[3/4] rounded-r-xl rounded-l-md shadow-[10px_10px_20px_rgba(0,0,0,0.1)] transition-all overflow-hidden flex flex-col ${color}`}
+        className={`relative aspect-[3/4] rounded-r-xl rounded-l-md shadow-[10px_10px_20px_rgba(0,0,0,0.1)] transition-all overflow-hidden flex flex-col ${color} ${isNew ? 'animate-pulse border-2 border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.6)]' : ''}`}
       >
+        {isNew && (
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 bg-yellow-400 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-b-md shadow-sm z-50">
+            Nouveau
+          </div>
+        )}
         {/* Book Spine Shadow */}
         <div className="absolute left-0 top-0 bottom-0 w-4 bg-black/20 z-10 border-r border-white/10" />
         

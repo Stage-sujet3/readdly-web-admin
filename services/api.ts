@@ -2,8 +2,20 @@ import axios from "axios"
 
 // Direct connection to the API Gateway (no Next.js proxy)
 // The gateway handles CORS for both localhost:3001 and localhost:3003
+// Dynamically determine the API base URL to support local network testing (e.g. from a mobile device)
+const getBaseUrl = () => {
+    if (typeof window !== "undefined") {
+        const { hostname, protocol } = window.location;
+        if (hostname !== "localhost" && hostname.startsWith("192.168.")) {
+            // Assume the API is running on port 3000 on the same host
+            return `${protocol}//${hostname}:3000`;
+        }
+    }
+    return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+};
+
 export const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    baseURL: getBaseUrl(),
     // Required for SuperTokens session cookies
     withCredentials: true, // Doit être true pour les cookies session
     timeout: 60000,

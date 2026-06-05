@@ -6,7 +6,8 @@ import {
   ChevronLeft, ChevronRight, Maximize2, 
   ExternalLink, Loader2, BookOpen, Trash2
 } from 'lucide-react';
-import { Story, Language, Level, Theme, ContentStatus } from '../../types';
+import { Story, StoryChapter, Language, Level, Theme, ContentStatus } from '../../types';
+import { storyService } from '../services/storyService';
 import { fileToBase64 } from '@/utils/helpers';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { ImageCropper } from '@/components/ImageCropper';
@@ -38,7 +39,7 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMessage, setUploadMessage] = useState('Préparation...');
-
+  console.log("this is initialData",initialData)
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || '');
@@ -331,31 +332,60 @@ export function StoryFormModal({ isOpen, onClose, onSave, initialData }: StoryFo
 
 import { api } from '@/services/api';
 
-export function StoryViewModal({ isOpen, onClose, content }: { isOpen: boolean, onClose: () => void, content: Story | null }) {
+interface StoryViewModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  content: Story | null;
+}
+
+export function StoryViewModal({ isOpen, onClose, content: initialContent }: StoryViewModalProps) {
   const [loading, setLoading] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
-
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageDataList, setPageDataList] = useState<{ id?: string; content: string; coverImage?: string; isChapter: boolean; title?: string }[]>([]);
+  const [content, setContent] = useState<Story | null>(initialContent);
+  const [isLoading, setIsLoading] = useState(false);
+  console.log("this is initialContent",initialContent)
   const isArabic = React.useMemo(() => /[\u0600-\u06FF]/.test(content?.content || ''), [content?.content]);
   
-  // Update state to hold dynamic page info
-  const [pageDataList, setPageDataList] = useState<{id?: string, content: string, coverImage?: string, isChapter: boolean}[]>([]);
+  useEffect(() => {
+    if (isOpen && initialContent) {
+      const fetchFullStory = async () => {
+        setIsLoading(true);
+        try {
+          const fullContent = await storyService.getStory(initialContent.id);
+          setContent(fullContent);
+        } catch (error) {
+          console.error("Failed to load full story content:", error);
+          setContent(initialContent);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchFullStory();
+    } else {
+      setContent(null);
+      setCurrentPage(0);
+    }
+  }, [isOpen, initialContent]);
 
   useEffect(() => {
-    if (!content) {
-      setPageDataList([]);
+    if (!content) return;
+    
+    // Si c'est un PDF avec des chapitres
+    if (content.type === 'PDF' && content.children && content.children.length > 0) {
+      const formattedPages = content.children.map(child => ({
+        id: child.id,
+        content: child.content || "Contenu du chapitre non disponible.",
+        coverImage: child.coverImage,
+        isChapter: true,
+        title: child.title
+      }));
+      setPageDataList(formattedPages);
       return;
     }
 
-    if (content.type === 'PDF' && content.children?.length) {
-      setPageDataList(content.children.map((ch: any) => ({
-        id: ch.id,
-        content: ch.content || "Chapitre vide",
-        coverImage: ch.coverImage,
-        isChapter: true
-      })));
-      return;
-    }
-    
+    // Sinon, contenu texte classique
     const contentText = content.content || '';
     if (!contentText.trim()) {
       setPageDataList([{ content: "Le contenu de l'histoire est vide.", isChapter: false }]);

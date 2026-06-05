@@ -4,6 +4,7 @@ import { X, Check, FileText, Loader2, ChevronLeft, ChevronRight, Image as ImageI
 import { EducationalText, Language, Level, Theme } from '../../types';
 import { fileToBase64 } from '@/utils/helpers';
 import { ImageCropper } from '@/components/ImageCropper';
+import { textService } from '../services/textService';
 
 interface TextFormModalProps {
   isOpen: boolean;
@@ -250,11 +251,30 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
   );
 }
 
-export function TextViewModal({ isOpen, onClose, content }: { isOpen: boolean, onClose: () => void, content: EducationalText | null }) {
+export function TextViewModal({ isOpen, onClose, content: initialContent }: { isOpen: boolean, onClose: () => void, content: EducationalText | null }) {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [flipDirection, setFlipDirection] = useState<'left' | 'right'>('right');
+  const [content, setContent] = useState<EducationalText | null>(initialContent);
+
+  useEffect(() => {
+    if (isOpen && initialContent) {
+      const fetchFullText = async () => {
+        try {
+          const fullContent = await textService.getText(initialContent.id);
+          setContent(fullContent);
+        } catch (error) {
+          console.error("Failed to load full text content:", error);
+          setContent(initialContent);
+        }
+      };
+      fetchFullText();
+    } else {
+      setContent(null);
+      setCurrentPage(0);
+    }
+  }, [isOpen, initialContent]);
 
   const isArabic = React.useMemo(() => /[\u0600-\u06FF]/.test(content?.content || ''), [content?.content]);
   

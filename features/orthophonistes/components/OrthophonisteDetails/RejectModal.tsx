@@ -5,10 +5,8 @@ import styles from "./RejectModal.module.css";
 
 const PRESET_REASONS = [
   "Documents manquants ou incomplets",
-  "CIN invalide ou illisible",
   "Diplôme non reconnu",
   "Informations incorrectes ou incohérentes",
-  "Photo de vérification non conforme",
 ];
 
 interface RejectModalProps {

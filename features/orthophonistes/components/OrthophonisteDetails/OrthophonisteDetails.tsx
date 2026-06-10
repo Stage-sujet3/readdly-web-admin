@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import {
   User, Mail, Phone, IdCard, MapPin, Calendar, CheckCheck,
@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Orthophoniste, OrthophonisteFile } from "../../types";
 import { RejectModal } from "./RejectModal";
+import { viewOrthophonisteDocs } from "@/services/user.service";
 import styles from "./OrthophonisteDetails.module.css";
 
 interface OrthophonisteDetailsProps {
@@ -75,6 +76,81 @@ function DocPlaceholder({ label }: { label: string }) {
   );
 }
 
+function SecureDocViewer({ orthophonisteId }: { orthophonisteId: string }) {
+  const [password, setPassword] = useState("");
+  const [docData, setDocData] = useState<{ url: string, mimeType: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleVerify = async () => {
+    if (!password) { setError("Mot de passe requis"); return; }
+    setIsLoading(true);
+    setError("");
+    try {
+      const res = await viewOrthophonisteDocs(orthophonisteId, password);
+      if (res.data?.success && res.data.data?.url) {
+        setDocData(res.data.data);
+      } else {
+        setError(res.data?.message || "Erreur de vérification");
+      }
+    } catch (e) {
+      setError("Erreur serveur");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (docData) {
+    const isImage = docData.mimeType?.startsWith("image/") || ["jpg", "jpeg", "png", "webp"].some(ext => docData.url.toLowerCase().includes(ext));
+    return (
+      <div className={styles.docCard}>
+        {isImage ? (
+          <img src={docData.url} alt="Document Sécurisé" className={styles.docPreview} />
+        ) : (
+          <div className={styles.docPlaceholder}>
+            <FileText style={{ width: "28px", height: "28px", color: "#94a3b8" }} />
+            <span className={styles.docPlaceholderText}>DOCUMENT</span>
+          </div>
+        )}
+        <div className={styles.docFooter}>
+          <span className={styles.docLabel}>Diplôme / Doc</span>
+          <a href={docData.url} target="_blank" rel="noopener noreferrer" className={styles.docViewBtn}>
+            <Eye style={{ width: "10px", height: "10px" }} /> Ouvrir
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.secureDocContainer}>
+      <ShieldCheck style={{ width: "28px", height: "28px", color: "#6366f1", marginBottom: '12px' }} />
+      <p style={{ fontSize: '0.875rem', color: '#1e293b', fontWeight: 600, marginBottom: '6px' }}>
+        Document Protégé
+      </p>
+      <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '16px', textAlign: 'center', maxWidth: '240px' }}>
+        Veuillez entrer votre mot de passe administrateur pour consulter le document.
+      </p>
+      <input 
+        type="password" 
+        value={password} 
+        onChange={e => setPassword(e.target.value)}
+        placeholder="Mot de passe admin"
+        className={styles.passwordInput}
+        style={{ marginBottom: '12px', width: '100%', maxWidth: '220px', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+      />
+      {error && <p style={{ color: '#dc2626', fontSize: '0.75rem', marginBottom: '12px' }}>{error}</p>}
+      <button 
+        onClick={handleVerify}
+        disabled={isLoading}
+        style={{ background: '#6366f1', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '0.813rem', fontWeight: 600, cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.7 : 1 }}
+      >
+        {isLoading ? "Vérification..." : "Voir le document"}
+      </button>
+    </div>
+  )
+}
+
 export function OrthophonisteDetails({
   selectedOrthophoniste,
   setSelectedOrthophoniste,
@@ -121,10 +197,10 @@ export function OrthophonisteDetails({
       : null;
 
   // Safe Date parsing
-  const safeDate = o.createdAt ? new Date(o.createdAt) : null;
+  const safeDate = o.verifiedAt ? new Date(o.verifiedAt) : (o.createdAt ? new Date(o.createdAt) : null);
   const formattedDate = safeDate && !isNaN(safeDate.getTime())
     ? safeDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
-    : "Date invalide";
+    : "Non vérifié";
 
   // Document Completeness
   const hasCinRecto = !!getFile("CIN_RECTO");
@@ -205,11 +281,23 @@ export function OrthophonisteDetails({
                   </div>
                   <div className={styles.infoRow}>
                     <div className={styles.infoIconWrap}>
-                      <IdCard style={{ width: "14px", height: "14px", color: "#6366f1" }} />
+                      <ShieldCheck style={{ width: "14px", height: "14px", color: "#6366f1" }} />
                     </div>
                     <div>
-                      <p className={styles.infoLabel}>CIN</p>
-                      <p className={styles.infoValue}>{o.cin || <span className={styles.infoValueMuted}>—</span>}</p>
+                      <p className={styles.infoLabel}>Vérification Identité</p>
+                      <p className={styles.infoValue}>
+                        Statut : {o.verificationStatus === 'VERIFIED' ? '✔ Vérifié' : o.verificationStatus === 'REJECTED' ? '❌ Rejeté' : 'En attente'}
+                        <br />
+                        Date : {formattedDate}
+                        {o.verificationStatus === 'VERIFIED' && o.faceMatchScore !== undefined && o.faceMatchScore !== null && (
+                          <>
+                            <br />
+                            <span style={{ fontSize: '0.75rem', color: '#059669' }}>
+                              Niveau de confiance IA : {Math.round(o.faceMatchScore * 100)}%
+                            </span>
+                          </>
+                        )}
+                      </p>
                     </div>
                   </div>
                   <div className={styles.infoRow}>
@@ -315,15 +403,9 @@ export function OrthophonisteDetails({
                   </a>
                 )}
               </div>
-              <div className={styles.docsGrid}>
-                {getFile("CIN_RECTO")
-                  ? <DocCard file={getFile("CIN_RECTO")!} />
-                  : <DocPlaceholder label="CIN Recto" />}
-                {getFile("CIN_VERSO")
-                  ? <DocCard file={getFile("CIN_VERSO")!} />
-                  : <DocPlaceholder label="CIN Verso" />}
+              <div className={styles.docsGrid} style={{ gridTemplateColumns: '1fr' }}>
                 {getFile("ORTHO_DOC")
-                  ? <DocCard file={getFile("ORTHO_DOC")!} />
+                  ? <SecureDocViewer orthophonisteId={orthophonisteId} />
                   : <DocPlaceholder label="Diplôme / Doc" />}
               </div>
             </div>

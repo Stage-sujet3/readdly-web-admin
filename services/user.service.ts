@@ -37,6 +37,9 @@ export const verifyOrthophoniste = (id: string) =>
 export const rejectOrthophoniste = (id: string, reason: string) =>
   api.post(`/admin/orthophonistes/${id}/reject`, { reason })
 
+export const viewOrthophonisteDocs = (id: string, password?: string) =>
+  api.post(`/admin/orthophonistes/${id}/view-docs`, { password })
+
 // Monitoring
 export const getMonitoringSummary = () => api.get("/admin/monitoring/summary")
 

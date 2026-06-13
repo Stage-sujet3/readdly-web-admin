@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Edit2, Trash2, MoreVertical, FileText, ToggleLeft, ToggleRight } from 'lucide-react';
 
@@ -124,8 +125,8 @@ export function DocumentCard({
          </h3>
          
          {coverImage ? (
-           <div className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-             <img src={coverImage} alt="Cover" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+           <div className="mt-4 w-full h-24 relative rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+             <Image src={coverImage} alt="Cover" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition-transform duration-500 hover:scale-105" />
            </div>
          ) : (
            <div className="mt-4 flex-1 flex flex-col gap-2 opacity-30 pointer-events-none">

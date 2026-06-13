@@ -4,6 +4,18 @@ const API_GATEWAY = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 const USER_SERVICE_URL = process.env.NEXT_PUBLIC_USER_SERVICE_URL || "http://localhost:3001";
 
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      }
+    ],
+  },
   turbopack: {
     root: __dirname,
     resolveAlias: {

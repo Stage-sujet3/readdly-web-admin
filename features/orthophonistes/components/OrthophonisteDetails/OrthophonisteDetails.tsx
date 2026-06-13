@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 import { Sheet } from "@/components/ui/Sheet";
 import {
   User, Mail, Phone, IdCard, MapPin, Calendar, CheckCheck,
@@ -45,7 +46,9 @@ function DocCard({ file }: { file: OrthophonisteFile }) {
   return (
     <div className={styles.docCard}>
       {isImage ? (
-        <img src={url} alt={FILE_TYPE_LABELS[file.fileType] || file.fileType} className={styles.docPreview} />
+        <div className={styles.docPreview} style={{ position: "relative", width: "100%", height: "120px" }}>
+          <Image src={url} alt={FILE_TYPE_LABELS[file.fileType] || file.fileType} fill style={{ objectFit: "cover" }} />
+        </div>
       ) : (
         <div className={styles.docPlaceholder}>
           <FileText style={{ width: "28px", height: "28px", color: "#94a3b8" }} />
@@ -105,7 +108,9 @@ function SecureDocViewer({ orthophonisteId }: { orthophonisteId: string }) {
     return (
       <div className={styles.docCard}>
         {isImage ? (
-          <img src={docData.url} alt="Document Sécurisé" className={styles.docPreview} />
+          <div className={styles.docPreview} style={{ position: "relative", width: "100%", height: "120px" }}>
+            <Image src={docData.url} alt="Document Sécurisé" fill style={{ objectFit: "cover" }} />
+          </div>
         ) : (
           <div className={styles.docPlaceholder}>
             <FileText style={{ width: "28px", height: "28px", color: "#94a3b8" }} />
@@ -197,7 +202,7 @@ export function OrthophonisteDetails({
       : null;
 
   // Safe Date parsing
-  const safeDate = o.verifiedAt ? new Date(o.verifiedAt) : (o.createdAt ? new Date(o.createdAt) : null);
+  const safeDate = (o as any).verifiedAt ? new Date((o as any).verifiedAt) : (o.createdAt ? new Date(o.createdAt) : null);
   const formattedDate = safeDate && !isNaN(safeDate.getTime())
     ? safeDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
     : "Non vérifié";
@@ -218,7 +223,7 @@ export function OrthophonisteDetails({
             <div className={styles.heroRow}>
               <div className={styles.avatarWrapper}>
                 {profilePhotoUrl ? (
-                  <img src={profilePhotoUrl} alt={fullName} className={styles.avatar} />
+                  <Image src={profilePhotoUrl} alt={fullName} width={100} height={100} className={styles.avatar} />
                 ) : (
                   <div className={styles.avatarInitials}>
                     {fullName.substring(0, 2).toUpperCase()}
@@ -289,11 +294,11 @@ export function OrthophonisteDetails({
                         Statut : {o.verificationStatus === 'VERIFIED' ? '✔ Vérifié' : o.verificationStatus === 'REJECTED' ? '❌ Rejeté' : 'En attente'}
                         <br />
                         Date : {formattedDate}
-                        {o.verificationStatus === 'VERIFIED' && o.faceMatchScore !== undefined && o.faceMatchScore !== null && (
+                        {o.verificationStatus === 'VERIFIED' && (o as any).faceMatchScore !== undefined && (o as any).faceMatchScore !== null && (
                           <>
                             <br />
                             <span style={{ fontSize: '0.75rem', color: '#059669' }}>
-                              Niveau de confiance IA : {Math.round(o.faceMatchScore * 100)}%
+                              Niveau de confiance IA : {Math.round((o as any).faceMatchScore * 100)}%
                             </span>
                           </>
                         )}

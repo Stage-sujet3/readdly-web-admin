@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, FileText, Loader2, ChevronLeft, ChevronRight, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { EducationalText, Language, Level, Theme } from '../../types';
@@ -205,7 +206,7 @@ export function TextFormModal({ isOpen, onClose, onSave, initialData }: TextForm
                   >
                     {coverImage ? (
                       <>
-                        <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
+                        <Image src={coverImage} alt="Cover" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4">
                            <button 
                              type="button"

@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 import { Search, Trash2, Eye, MapPin, Calendar, FileText, CheckCheck, AlertCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Orthophoniste } from "../../types";
@@ -108,7 +109,7 @@ export function OrthophonistesGrid({
                 <div className={styles.cardHeader}>
                   <div className={styles.avatarWrapper}>
                     {profilePhotoUrl ? (
-                      <img src={profilePhotoUrl} alt={fullName} className={styles.avatar} />
+                      <Image src={profilePhotoUrl} alt={fullName} width={64} height={64} className={styles.avatar} />
                     ) : (
                       <div className={styles.avatarInitials}>
                         {fullName.substring(0, 2).toUpperCase()}

@@ -78,7 +78,6 @@ export function useParents() {
         setTotal(0);
       }
     } catch (error) {
-      console.error("Failed to fetch parents", error);
       setParents([]);
       setTotal(0);
     } finally {
@@ -103,7 +102,7 @@ export function useParents() {
         setParents(prev => prev.map(p => p.idU === detailedParent.idU ? detailedParent : p));
       }
     } catch (error) {
-      console.error("Failed to load user details:", error);
+      // Silently fail or track in monitoring service
     } finally {
       setIsFetching(false);
     }
@@ -111,12 +110,9 @@ export function useParents() {
 
   const fetchParentChildren = async (parentId: string): Promise<Parent | null> => {
     try {
-      console.log("Fetching children for parent:", parentId);
       const response = await getParentWithChildren(parentId);
-      console.log("Response:", response.data);
       if (response.data?.success) {
         const enfants = response.data.data;
-        console.log("Enfants:", enfants);
         // Update the parent with the fetched enfants
         let updatedParent: Parent | null = null;
         setParents(prev => {
@@ -130,11 +126,9 @@ export function useParents() {
           return updated;
         });
         return updatedParent;
-      } else {
-        console.log("Response not successful:", response.data);
       }
     } catch (error) {
-      console.error("Failed to fetch parent children:", error);
+      // Silently fail or track in monitoring service
     }
     return null;
   };
@@ -153,7 +147,6 @@ export function useParents() {
         alert(response.data?.message || "Échec de la suppression");
       }
     } catch (error) {
-      console.error("Delete parent error:", error);
       alert("Une erreur est survenue lors de la suppression");
     } finally {
       setIsDeleting(false);

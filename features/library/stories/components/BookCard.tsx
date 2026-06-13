@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Edit2, Trash2, Globe, Archive } from 'lucide-react';
 import { ContentStatus } from '../../types';
@@ -68,7 +69,7 @@ export function BookCard({ id, title, coverImage, status, variant, isNew, onClic
           {/* Cover image or design */}
           {coverImage ? (
             <>
-              <img src={coverImage} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+              <Image src={coverImage} alt={title} fill sizes="120px" className="object-cover" />
               <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.8) 100%)' }} />
             </>
           ) : (

@@ -11,7 +11,7 @@ const getBaseUrl = () => {
             return `${protocol}//${hostname}:3000`;
         }
     }
-    return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+    return process.env.NEXT_PUBLIC_API_URL ;
 };
 
 export const api = axios.create({

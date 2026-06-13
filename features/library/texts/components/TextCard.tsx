@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Edit2, Trash2, Globe, Archive, FileText, BookOpen } from 'lucide-react';
 import { ContentStatus } from '../../types';
@@ -28,7 +29,7 @@ export function TextCard({ id, title, coverImage, status, level, theme, isNew, o
       {/* Cover Image Banner */}
       <div className="relative w-full aspect-[21/9] bg-indigo-50 overflow-hidden flex-shrink-0">
         {coverImage ? (
-          <img src={coverImage} alt="Cover" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          <Image src={coverImage} alt="Cover" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-110" />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-100 group-hover:from-indigo-100 group-hover:to-indigo-50 transition-colors duration-500">
             <FileText className="w-12 h-12 text-indigo-300 mb-2 group-hover:text-indigo-500 transition-colors" />

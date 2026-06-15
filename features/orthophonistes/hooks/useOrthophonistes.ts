@@ -2,77 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { getOrthophonistesList, deleteOrthophoniste, getUser, verifyOrthophoniste, rejectOrthophoniste } from "@/services/user.service";
 import { Orthophoniste, OrthophonisteStats } from "../types";
 
-const MOCK_ORTHOPHONISTES: Orthophoniste[] = [
-  {
-    idU: "ortho-1",
-    nom: "Ben Ali",
-    prenom: "Ahmed",
-    email: "ahmed.benali@ortho.tn",
-    role: "ORTHOPHONISTE",
-    numTel: "216 55 123 456",
-    adresse: "Tunis, Centre Urbain Nord",
-    dateCreation: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    authProvider: "EMAIL_PASSWORD",
-    emailVerified: true,
-    etatCompte: "ACTIVE",
-    verificationAdmin: "VERIFIED",
-    verificationStatus: "VERIFIED",
-    isProfileCompleted: true,
-  },
-  {
-    idU: "ortho-2",
-    nom: "Mansour",
-    prenom: "Sarah",
-    email: "sarah.mansour@gmail.com",
-    role: "ORTHOPHONISTE",
-    numTel: "216 98 765 432",
-    adresse: "Sousse, Khezama",
-    dateCreation: new Date(Date.now() - 86400000).toISOString(),
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    authProvider: "EMAIL_PASSWORD",
-    emailVerified: true,
-    etatCompte: "PENDING",
-    verificationAdmin: "NOT_VERIFIED",
-    verificationStatus: "PENDING",
-    isProfileCompleted: true,
-  },
-  {
-    idU: "ortho-3",
-    nom: "Dridi",
-    prenom: "Yassine",
-    email: "yassine.dridi@outlook.com",
-    role: "ORTHOPHONISTE",
-    numTel: "216 22 333 444",
-    adresse: "Sfax, Route de Tunis",
-    dateCreation: new Date(Date.now() - 172800000).toISOString(),
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    authProvider: "EMAIL_PASSWORD",
-    emailVerified: true,
-    etatCompte: "ACTIVE",
-    verificationAdmin: "VERIFIED",
-    verificationStatus: "VERIFIED",
-    isProfileCompleted: true,
-  },
-  {
-    idU: "ortho-4",
-    nom: "Ferjani",
-    prenom: "Leila",
-    email: "leila.ferjani@yahoo.fr",
-    role: "ORTHOPHONISTE",
-    numTel: "216 50 500 500",
-    adresse: "Bizerte, Corniche",
-    dateCreation: new Date(Date.now() - 3600000).toISOString(),
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    authProvider: "EMAIL_PASSWORD",
-    emailVerified: true,
-    etatCompte: "PENDING",
-    verificationAdmin: "NOT_VERIFIED",
-    verificationStatus: "PENDING",
-    isProfileCompleted: true,
-  }
-];
-
 export function useOrthophonistes() {
   const [orthophonistes, setOrthophonistes] = useState<Orthophoniste[]>([]);
   const [stats, setStats] = useState<OrthophonisteStats & { pendingOrthophonistes?: number }>({
@@ -100,14 +29,9 @@ export function useOrthophonistes() {
     try {
       const response = await getOrthophonistesList(page, limit, searchTerm, statusFilter).catch(() => ({ data: { success: false } }));
       
-      let orthophonistesData = (response.data?.success && response.data.data.users) 
+      const orthophonistesData = (response.data?.success && response.data.data.users) 
         ? response.data.data.users.filter((user: any) => user.role === 'ORTHOPHONISTE') 
         : [];
-      
-      // Fallback to MOCK data if empty (for demonstration)
-      if (orthophonistesData.length === 0 && page === 1 && !searchTerm) {
-        orthophonistesData = MOCK_ORTHOPHONISTES;
-      }
 
       setOrthophonistes(orthophonistesData);
       setTotal(response.data?.data?.total || orthophonistesData.length);
@@ -128,7 +52,7 @@ export function useOrthophonistes() {
       });
     } catch (error) {
       console.error("Failed to fetch orthophonistes", error);
-      setOrthophonistes(MOCK_ORTHOPHONISTES);
+      setOrthophonistes([]);
     } finally {
       setIsLoading(false);
     }

@@ -118,18 +118,7 @@ const EMPTY_RATINGS_SUMMARY: RatingsSummary = {
   distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
 }
 
-const FAKE_RATINGS_SUMMARY: RatingsSummary = {
-  globalAverage: 4.6,
-  totalVotes: 124,
-  topFeature: "STORY",
-  byFeature: {
-    STORY: { average: 4.8, count: 56, distribution: { 5: 45, 4: 9, 3: 2, 2: 0, 1: 0 } },
-    TEXT: { average: 4.5, count: 34, distribution: { 5: 20, 4: 10, 3: 4, 2: 0, 1: 0 } },
-    AI_ASSISTANT: { average: 4.2, count: 22, distribution: { 5: 10, 4: 8, 3: 3, 2: 1, 1: 0 } },
-    IMAGE_GEN: { average: 4.7, count: 12, distribution: { 5: 9, 4: 2, 3: 1, 2: 0, 1: 0 } },
-  },
-  distribution: { 5: 84, 4: 29, 3: 10, 2: 1, 1: 0 },
-}
+
 
 const TYPE_MAP: Record<number, MessageType> = { 0: "PROBLEM", 1: "FEEDBACK" }
 const STATUS_MAP: Record<number, MessageStatus> = { 0: "OPEN", 1: "IN_PROGRESS", 2: "RESOLVED" }
@@ -288,14 +277,14 @@ export default function FeedbackUnifiedPage() {
     setIsLoadingRatings(true)
     try {
       const res = await messagesService.getRatingsSummary()
-      if (res.data?.success && res.data.data && res.data.data.totalVotes > 0) {
+      if (res.data?.success && res.data.data) {
         setRatingsSummary(normalizeRatingsSummary(res.data.data))
       } else {
-        setRatingsSummary(FAKE_RATINGS_SUMMARY)
+        setRatingsSummary(EMPTY_RATINGS_SUMMARY)
       }
     } catch (err) { 
       console.error(err)
-      setRatingsSummary(FAKE_RATINGS_SUMMARY)
+      setRatingsSummary(EMPTY_RATINGS_SUMMARY)
     }
     finally { setIsLoadingRatings(false) }
   }, [])

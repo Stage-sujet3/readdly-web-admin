@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "preinstall": "mkdir -p node_modules/@readdly/common && curl -H \"Authorization: token $GITHUB_TOKEN\" -L https://api.github.com/repos/Stage-sujet3/readdly-common/tarball/main | tar xz -C node_modules/@readdly/common --strip-components=1",
+    "postinstall": "cd node_modules/@readdly/common && npm install && npm run build",
     "dev": "next dev --port 3003",
     "build": "next build",
     "start": "next start --port 3003",

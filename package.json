@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "preinstall": "if [ -n \"$GITHUB_TOKEN\" ]; then git config --global url.\"https://$GITHUB_TOKEN@github.com/\".insteadOf \"https://github.com/\"; fi",
     "dev": "next dev --port 3003",
     "build": "next build",
     "start": "next start --port 3003",
@@ -11,7 +10,7 @@
     "test:e2e": "playwright test test/sprint1.e2e.spec.ts --reporter=list"
   },
   "dependencies": {
-    "@readdly/common": "git+https://github.com/Stage-sujet3/readdly-common.git#main",
+    "@readdly/common": "git+https://${GITHUB_TOKEN}:x-oauth-basic@github.com/Stage-sujet3/readdly-common.git#main",
     "axios": "^1.13.5",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.2",

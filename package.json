@@ -10,7 +10,7 @@
     "test:e2e": "playwright test test/sprint1.e2e.spec.ts --reporter=list"
   },
   "dependencies": {
-    "@readdly/common": "git+https://${GITHUB_TOKEN}:x-oauth-basic@github.com/Stage-sujet3/readdly-common.git#main",
+    "@readdly/common": "https://api.github.com/repos/Stage-sujet3/readdly-common/tarball/main",
     "axios": "^1.13.5",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.2",

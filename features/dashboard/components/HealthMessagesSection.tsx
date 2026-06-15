@@ -47,26 +47,13 @@ export function HealthMessagesSection() {
         const healthResponse = await api.get("/admin/health").catch(() => ({ data: { success: false } }))
         if (healthResponse.data?.success && healthResponse.data.data.length > 0) {
           setHealthMetrics(healthResponse.data.data)
-        } else {
-          setHealthMetrics([
-            { name: "API Gateway", status: "Opérationnel", uptime: "99.9%", icon: "Server", color: "text-emerald-500" },
-            { name: "Auth Service", status: "Opérationnel", uptime: "100%", icon: "ShieldCheck", color: "text-indigo-500" },
-            { name: "Learning DB", status: "Opérationnel", uptime: "99.8%", icon: "Database", color: "text-amber-500" },
-            { name: "Storage S3", status: "Lent", uptime: "98.5%", icon: "Cloud", color: "text-rose-500" },
-          ])
-        }
+        } 
         
         // Fetch messages
         const messagesResponse = await api.get("/admin/messages").catch(() => ({ data: { success: false } }))
         if (messagesResponse.data?.success && messagesResponse.data.data.length > 0) {
           setMessages(messagesResponse.data.data)
-        } else {
-          setMessages([
-            { id: 1, user: "Sarah Mansour", content: "Problème avec le scan du livre 'Le Petit Prince'...", time: "Il y a 5 min", read: false },
-            { id: 2, user: "Dr. Ahmed Ben Ali", content: "Suggestion d'amélioration pour le dictionnaire visuel.", time: "Il y a 2h", read: false },
-            { id: 3, user: "Yassine Dridi", content: "La génération d'image est un peu lente ce matin.", time: "Il y a 5h", read: true },
-          ])
-        }
+        } 
         
       } catch (err: any) {
         console.error("[HealthMessagesSection] Failed:", err)
